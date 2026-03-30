@@ -299,6 +299,19 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
 .task-section-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--cream2);border-bottom:1px solid var(--border)}
 .task-section-title{font-weight:600;font-size:14px;flex:1}
 .task-section-body{padding:4px 16px 12px}
+
+.earnings-banner{background:linear-gradient(135deg,#2E3B2E 0%,var(--sage) 100%);border-radius:var(--r);padding:18px 22px;margin-bottom:16px;color:white}
+.earnings-banner .el{font-size:11px;opacity:0.5;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
+.earnings-banner .ev{font-family:'Fraunces',serif;font-size:28px;font-weight:600}
+.earnings-banner .es{font-size:12px;opacity:0.5;margin-top:3px}
+.time-log-card{background:white;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow-sm)}
+.time-log-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.time-log-date{font-size:13px;font-weight:600}
+.time-log-times{display:flex;gap:16px;font-size:12.5px;color:var(--muted)}
+.time-log-hrs{font-size:13px;font-weight:600;color:var(--sage)}
+.register-exit-btn{width:100%;padding:13px;border-radius:10px;background:var(--terra);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:12px;transition:all 0.18s;display:flex;align-items:center;justify-content:center;gap:8px}
+.register-exit-btn:hover{background:#a85e39}
+.register-exit-btn.done{background:var(--muted);cursor:default}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 <script type="module">
@@ -494,13 +507,13 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
         <div id="nomina-detalle"></div>
       </div>
       <div class="card" style="margin-top:16px">
-        <div class="card-title">⏱️ Registrar horas trabajadas</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Si una integrante trabajó más o menos horas de lo normal en un día específico, regístralo aquí.</p>
+        <div class="card-title">⏱️ Registro de entradas — Gladys</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Registra la hora de entrada de cada miembro del equipo cada día.</p>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;flex-wrap:wrap">
           <div class="form-group"><label>Miembro</label><select id="hr-miembro"></select></div>
           <div class="form-group"><label>Fecha</label><input type="date" id="hr-fecha"></div>
-          <div class="form-group"><label>Horas trabajadas</label><input type="number" id="hr-horas" placeholder="Ej: 6" step="0.5" min="0"></div>
-          <button class="btn btn-primary" onclick="registrarHoras()">+ Registrar</button>
+          <div class="form-group"><label>Hora de entrada</label><input type="time" id="hr-entrada"></div>
+          <button class="btn btn-primary" onclick="registrarEntrada()">+ Registrar entrada</button>
         </div>
         <div id="horas-log" style="margin-top:16px"></div>
       </div>
@@ -619,6 +632,7 @@ let pagos=JSON.parse(localStorage.getItem('cbg3_pagos')||'[]');
 let equipo=JSON.parse(localStorage.getItem('cbg3_equipo')||'[]');
 let ausencias=JSON.parse(localStorage.getItem('cbg3_ausencias')||'[]');
 let horasLog=JSON.parse(localStorage.getItem('cbg3_horas')||'[]');
+let horasRegistro=JSON.parse(localStorage.getItem('cbg3_horarios')||'[]');
 let masterTasks=JSON.parse(localStorage.getItem('cbg3_tasks_v2')||JSON.stringify([
   {id:1, nombre:'🛁 Baños', tareas:[{id:1,t:'Limpiar inodoro completo'},{id:2,t:'Limpiar lavabo y grifería'},{id:3,t:'Fregar azulejos y paredes'},{id:4,t:'Limpiar espejo'}]},
   {id:2, nombre:'🍳 Cocina', tareas:[{id:1,t:'Limpiar estufa y campana'},{id:2,t:'Fregar fregadero'},{id:3,t:'Limpiar mesetas'},{id:4,t:'Limpiar microondas'}]},
@@ -636,6 +650,7 @@ function saveAll(){
   localStorage.setItem('cbg3_ausencias',JSON.stringify(ausencias));
   localStorage.setItem('cbg3_tasks_v2',JSON.stringify(masterTasks));
   localStorage.setItem('cbg3_horas',JSON.stringify(horasLog));
+  localStorage.setItem('cbg3_horarios',JSON.stringify(horasRegistro));
   if(window.saveToFirebase){
     window.saveToFirebase({
       clientes,citas,pagos,equipo,ausencias,
@@ -986,8 +1001,42 @@ function renderTeamView(){
     return Object.values(asgn).includes(currentMember.id)||enMiembros;
   });
   const cont=document.getElementById('team-content');
-  if(!misCitas.length){cont.innerHTML=`<div class="no-tasks"><div class="icon">🌟</div><p style="font-weight:700;font-size:16px;color:var(--ink);margin-bottom:6px">¡Sin tareas asignadas hoy!</p><p>Si crees que hay un error, comunícate con Gladys.</p></div>`;return}
-  cont.innerHTML=`<div class="section-lbl">Mis tareas de hoy — ${misCitas.length} casa${misCitas.length>1?'s':''}</div>`+misCitas.map(c=>{
+  
+  // Calculate earnings this week
+  const today2=new Date();
+  const day2=today2.getDay(),diff2=today2.getDate()-day2+(day2===0?-6:1);
+  const monDate=new Date(today2);monDate.setDate(diff2);
+  const semInicio=monDate.toISOString().split('T')[0];
+  const semFin=today2.toISOString().split('T')[0];
+  const misRegistros=horasRegistro.filter(h=>h.miembroId===currentMember.id&&h.fecha>=semInicio&&h.fecha<=semFin);
+  const hrsSemanales=misRegistros.reduce((s,h)=>s+calcHrsEntradaSalida(h.entrada,h.salida),0);
+  const gananciaSemana=hrsSemanales*(currentMember.tarifa||0);
+  
+  // Today's registro
+  const todayReg=horasRegistro.find(h=>h.miembroId===currentMember.id&&h.fecha===today);
+  
+  let earningsHtml=`<div class="earnings-banner">
+    <div class="el">Mis ganancias esta semana</div>
+    <div class="ev">$${gananciaSemana.toLocaleString()}</div>
+    <div class="es">${hrsSemanales.toFixed(1)} hrs × $${currentMember.tarifa||0}/hr</div>
+  </div>`;
+  
+  // Exit button
+  let exitHtml='';
+  if(todayReg&&todayReg.entrada&&!todayReg.salida){
+    exitHtml=`<button class="register-exit-btn" onclick="registrarSalidaTeam()">🔴 Registrar mi salida de hoy</button>`;
+  } else if(todayReg&&todayReg.salida){
+    exitHtml=`<button class="register-exit-btn done" disabled>✅ Salida registrada hoy: ${todayReg.salida}</button>`;
+  }
+  
+  if(!misCitas.length){
+    cont.innerHTML=earningsHtml+exitHtml+`<div class="no-tasks"><div class="icon">🌟</div><p style="font-weight:700;font-size:16px;color:var(--ink);margin-bottom:6px">¡Sin tareas asignadas hoy!</p><p>Si crees que hay un error, comunícate con Gladys.</p></div>`;
+    return;
+  }
+  
+  // Prepend earnings and exit to content
+  const extraHtml = earningsHtml + exitHtml;
+  cont.innerHTML=extraHtml+`<div class="section-lbl">Mis tareas de hoy — ${misCitas.length} casa${misCitas.length>1?'s':''}</div>`+misCitas.map(c=>{
     const asgn=c.assignments||{},tasksDone=c.tasksDone||{},done=c.estado==='Completada';
     const misTareas=[];
     (c.taskIds||[]).forEach(tk=>{
@@ -1043,24 +1092,14 @@ function renderNomina(){
   const activos=equipo.filter(m=>m.activo);
   if(!activos.length){resWrap.innerHTML='<p style="color:var(--muted);font-size:13px">Sin miembros activos</p>';detWrap.innerHTML='';return;}
 
-  // For each member calculate hours in date range
+  // For each member calculate hours using horasRegistro
   const results=activos.map(m=>{
-    const hrsDia=calcHorasDia(m.entrada,m.salida);
-    // Count scheduled days in range
-    const dayNames=['Dom','Lun','Mar','Miér','Jue','Vie','Sáb'];
-    let diasCount=0,d=new Date(inicio+'T12:00:00');
-    const endD=new Date(fin+'T12:00:00');
-    while(d<=endD){const dn=dayNames[d.getDay()];if((m.dias||[]).includes(dn))diasCount++;d.setDate(d.getDate()+1);}
-    // Add manual hour logs
-    const logs=horasLog.filter(h=>h.miembroId===m.id&&h.fecha>=inicio&&h.fecha<=fin);
-    const logHrs=logs.reduce((s,h)=>s+h.horas,0);
-    const logDays=new Set(logs.map(h=>h.fecha)).size;
-    // Scheduled hrs minus logged days (replaced by manual) + manual hrs
-    const scheduledHrs=(diasCount - logDays)*hrsDia + logHrs;
-    const totalHrs=Math.max(0,scheduledHrs);
+    const regs=horasRegistro.filter(h=>h.miembroId===m.id&&h.fecha>=inicio&&h.fecha<=fin);
+    const totalHrs=regs.reduce((s,h)=>s+calcHrsEntradaSalida(h.entrada,h.salida),0);
     const tarifa=m.tarifa||0;
     const total=totalHrs*tarifa;
-    return {m,diasCount,totalHrs:totalHrs.toFixed(1),tarifa,total};
+    const diasTrabajados=regs.filter(h=>h.salida).length;
+    return {m,diasTrabajados,totalHrs:totalHrs.toFixed(1),tarifa,total};
   });
 
   resWrap.innerHTML=results.map(r=>`
@@ -1080,7 +1119,7 @@ function renderNomina(){
       <div class="avatar" style="background:${aC(r.m.nombre)};color:white">${r.m.nombre[0].toUpperCase()}</div>
       <div class="nomina-row-info">
         <div class="nomina-row-name">${r.m.nombre} <span class="badge badge-gray" style="font-size:10.5px">${r.m.rol}</span></div>
-        <div class="nomina-row-meta">$${r.tarifa}/hr · ${r.m.dias&&r.m.dias.length?r.m.dias.join(', '):'—'} · ${r.m.entrada&&r.m.salida?r.m.entrada+' – '+r.m.salida:'Sin horario'}</div>
+        <div class="nomina-row-meta">$${r.tarifa}/hr · ${r.diasTrabajados} días registrados esta semana</div>
       </div>
       <div>
         <div class="nomina-row-total">$${r.total.toLocaleString()}</div>
@@ -1092,28 +1131,76 @@ function renderNomina(){
     </div>`;
 }
 
-function registrarHoras(){
+function registrarEntrada(){
   const mId=parseInt(document.getElementById('hr-miembro').value);
   const fecha=document.getElementById('hr-fecha').value;
-  const horas=parseFloat(document.getElementById('hr-horas').value);
-  if(!mId||!fecha||!horas)return alert('Completa todos los campos');
+  const entrada=document.getElementById('hr-entrada').value;
+  if(!mId||!fecha||!entrada)return alert('Completa todos los campos');
   const m=equipo.find(x=>x.id===mId);
-  horasLog.push({id:Date.now(),miembroId:mId,miembroNombre:m?.nombre||'—',fecha,horas});
+  // Check if already exists
+  const existing=horasRegistro.find(h=>h.miembroId===mId&&h.fecha===fecha);
+  if(existing){
+    existing.entrada=entrada;
+  } else {
+    horasRegistro.push({id:Date.now(),miembroId:mId,miembroNombre:m?.nombre||'—',fecha,entrada:'',salida:''});
+    horasRegistro[horasRegistro.length-1].entrada=entrada;
+  }
   saveAll();
-  document.getElementById('hr-horas').value='';
+  document.getElementById('hr-entrada').value='';
   renderHorasLog();
   renderNomina();
+  showToast('✅ Entrada registrada para '+m?.nombre);
+}
+
+function registrarSalida(miembroId, fecha){
+  const reg=horasRegistro.find(h=>h.miembroId===miembroId&&h.fecha===fecha);
+  if(!reg)return alert('No hay entrada registrada para este día');
+  // Ask for exit time
+  const hora=prompt('¿A qué hora saliste? (formato HH:MM, ej: 17:30)');
+  if(!hora)return;
+  reg.salida=hora;
+  saveAll();
+  renderTeamView();
+  showToast('✅ Salida registrada');
 }
 
 function renderHorasLog(){
   const wrap=document.getElementById('horas-log');
   if(!wrap)return;
-  const sorted=[...horasLog].sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,10);
-  if(!sorted.length){wrap.innerHTML='<p style="color:var(--muted);font-size:13px">Sin registros manuales</p>';return;}
-  wrap.innerHTML='<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:8px">Últimos registros</div>'+
-    sorted.map(h=>`<div class="hrs-log-item"><div class="avatar" style="background:${aC(h.miembroNombre)};color:white">${h.miembroNombre[0].toUpperCase()}</div><div style="flex:1"><strong>${h.miembroNombre}</strong> — ${fmtF(h.fecha)}</div><span class="badge badge-blue">${h.horas} hrs</span><button class="btn btn-danger btn-sm" onclick="delHora(${h.id})">×</button></div>`).join('');
+  const sorted=[...horasRegistro].sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,15);
+  if(!sorted.length){wrap.innerHTML='<p style="color:var(--muted);font-size:13px">Sin registros aún</p>';return;}
+  wrap.innerHTML='<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:10px">Registros recientes</div>'+
+    sorted.map(h=>{
+      const hrs=calcHrsEntradaSalida(h.entrada,h.salida);
+      const m=equipo.find(x=>x.id===h.miembroId);
+      const tarifa=m?.tarifa||0;
+      return `<div class="time-log-card">
+        <div class="time-log-row">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="avatar" style="background:${aC(h.miembroNombre)};color:white">${h.miembroNombre[0].toUpperCase()}</div>
+            <div>
+              <div class="time-log-date">${h.miembroNombre}</div>
+              <div style="font-size:12px;color:var(--muted)">${fmtF(h.fecha)}</div>
+            </div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="delRegistro(${h.id})">×</button>
+        </div>
+        <div class="time-log-times">
+          <span>🟢 Entrada: <strong>${h.entrada||'—'}</strong></span>
+          <span>🔴 Salida: <strong>${h.salida||'Pendiente'}</strong></span>
+          ${hrs>0?`<span class="time-log-hrs">${hrs.toFixed(1)} hrs · $${(hrs*tarifa).toLocaleString()}</span>`:''}
+        </div>
+      </div>`;
+    }).join('');
 }
 
+function calcHrsEntradaSalida(entrada,salida){
+  if(!entrada||!salida)return 0;
+  const [eh,em]=entrada.split(':').map(Number),[sh,sm]=salida.split(':').map(Number);
+  return Math.max(0,((sh*60+sm)-(eh*60+em))/60);
+}
+
+function delRegistro(id){horasRegistro=horasRegistro.filter(h=>h.id!==id);saveAll();renderHorasLog();renderNomina();}
 function delHora(id){horasLog=horasLog.filter(h=>h.id!==id);saveAll();renderHorasLog();renderNomina();}
 
 
@@ -1232,6 +1319,24 @@ function showToast(msg){
 
 // Render functions exposed via direct reference below
 
+
+function registrarSalidaTeam(){
+  if(!currentMember)return;
+  const today=new Date().toISOString().split('T')[0];
+  const now=new Date();
+  const hora=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  const confirm_=confirm(`¿Registrar tu salida a las ${hora}?`);
+  if(!confirm_)return;
+  const reg=horasRegistro.find(h=>h.miembroId===currentMember.id&&h.fecha===today);
+  if(reg){
+    reg.salida=hora;
+    saveAll();
+    renderTeamView();
+    showToast('✅ Salida registrada: '+hora);
+  } else {
+    alert('No hay entrada registrada para hoy. Comunícate con Gladys.');
+  }
+}
 // ── UTILS ──
 function fmtF(s){const d=new Date(s+'T12:00:00');return d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'})}
 function aC(n){const c=['#4E7353','#C4714A','#3A6BC0','#7B5C9E','#2C7873','#B5602A','#5C6B8C'];let h=0;for(let i=0;i<(n||'').length;i++)h=(n.charCodeAt(i)+((h<<5)-h));return c[Math.abs(h)%c.length]}
