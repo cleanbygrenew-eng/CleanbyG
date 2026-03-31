@@ -464,8 +464,8 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
         <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Agrega aquí todo lo que Gladys puede hacer. Luego seleccionas las que aplican a cada cliente.</p>
         <div id="master-tasks-list"></div>
         <div class="add-task-row">
-          <input id="new-master-task" placeholder="Nombre de nueva sección (Ej: Lavandería, Exterior...)" onkeydown="if(event.key==='Enter')addMasterTask()">
-          <button class="btn btn-primary" onclick="addMasterTask()">+ Nueva sección</button>
+          <input id="new-master-task" placeholder="Ej: Limpiar chimenea, Planchar, Lavar trastes..." onkeydown="if(event.key==='Enter')addMasterTask()">
+          <button class="btn btn-primary" onclick="addMasterTask()">+ Agregar</button>
         </div>
       </div>
     </div>
@@ -537,6 +537,7 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
       <div class="form-group"><label>Frecuencia</label><select id="cf"><option>Semanal</option><option>Quincenal</option><option>Mensual</option><option>Eventual</option></select></div>
       <div class="form-group"><label>Precio ($)</label><input id="cp" type="number" placeholder="500"></div>
       <div class="form-group" style="grid-column:1/-1"><label>Notas</label><textarea id="cno" rows="2" placeholder="Mascotas, llaves, instrucciones..."></textarea></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Procedimientos específicos</label><textarea id="cpro" rows="4" placeholder="Describe cómo se limpia esta casa: orden de los cuartos, productos a usar, instrucciones especiales, preferencias del cliente..."></textarea></div>
     </div>
     <div class="modal-sep">Tareas de este cliente</div>
     <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Selecciona qué se hace en esta casa</p>
@@ -613,11 +614,13 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
     </div>
     <div class="date-banner"><div><div class="dl">Hoy</div><div class="dv" id="team-date-val">—</div></div><div class="di">🧹</div></div>
     <div class="ausencia-form-card">
-      <h3>⚠️ Reportar ausencia</h3>
-      <div class="aus-row">
-        <input type="date" id="aus-fecha">
-        <textarea id="aus-motivo" placeholder="Motivo de la ausencia..." rows="2" style="resize:none"></textarea>
-        <button class="btn btn-gold" style="width:100%" onclick="reportarAusencia()">Enviar aviso a Gladys</button>
+      <h3 onclick="toggleAusForm()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">⚠️ Reportar ausencia <span id="aus-toggle" style="font-size:14px;color:var(--muted)">▼</span></h3>
+      <div id="aus-form-body" style="display:none">
+        <div class="aus-row" style="margin-top:12px">
+          <input type="date" id="aus-fecha">
+          <textarea id="aus-motivo" placeholder="Motivo de la ausencia..." rows="2" style="resize:none"></textarea>
+          <button class="btn btn-gold" style="width:100%" onclick="reportarAusencia()">Enviar aviso a Gladys</button>
+        </div>
       </div>
     </div>
     <div id="team-content"></div>
@@ -633,13 +636,17 @@ let equipo=JSON.parse(localStorage.getItem('cbg3_equipo')||'[]');
 let ausencias=JSON.parse(localStorage.getItem('cbg3_ausencias')||'[]');
 let horasLog=JSON.parse(localStorage.getItem('cbg3_horas')||'[]');
 let horasRegistro=JSON.parse(localStorage.getItem('cbg3_horarios')||'[]');
-let masterTasks=JSON.parse(localStorage.getItem('cbg3_tasks_v2')||JSON.stringify([
-  {id:1, nombre:'🛁 Baños', tareas:[{id:1,t:'Limpiar inodoro completo'},{id:2,t:'Limpiar lavabo y grifería'},{id:3,t:'Fregar azulejos y paredes'},{id:4,t:'Limpiar espejo'}]},
-  {id:2, nombre:'🍳 Cocina', tareas:[{id:1,t:'Limpiar estufa y campana'},{id:2,t:'Fregar fregadero'},{id:3,t:'Limpiar mesetas'},{id:4,t:'Limpiar microondas'}]},
-  {id:3, nombre:'🧹 Desempolvado', tareas:[{id:1,t:'Sacudir muebles y superficies'},{id:2,t:'Limpiar ventiladores'},{id:3,t:'Limpiar cuadros y adornos'}]},
-  {id:4, nombre:'🌀 Aspirado', tareas:[{id:1,t:'Aspirar alfombras y tapetes'},{id:2,t:'Aspirar sofás y sillas'},{id:3,t:'Aspirar escaleras'}]},
-  {id:5, nombre:'🪟 Vidrios', tareas:[{id:1,t:'Limpiar ventanas por dentro'},{id:2,t:'Limpiar espejos'},{id:3,t:'Limpiar puertas de vidrio'}]},
-  {id:6, nombre:'🏠 General', tareas:[{id:1,t:'Barrer y trapear pisos'},{id:2,t:'Vaciar basureros'},{id:3,t:'Limpiar manijas e interruptores'}]}
+let masterTasks=JSON.parse(localStorage.getItem('cbg3_tasks_v3')||JSON.stringify([
+  {id:1,t:'Barrer y trapear pisos'},
+  {id:2,t:'Aspirar alfombras y tapetes'},
+  {id:3,t:'Sacudir polvo en muebles y superficies'},
+  {id:4,t:'Limpiar ventanas por dentro'},
+  {id:5,t:'Baños: inodoro, lavabo y tina'},
+  {id:6,t:'Cocina: estufa, fregadero y mesetas'},
+  {id:7,t:'Limpiar espejos y cristales'},
+  {id:8,t:'Vaciar basureros'},
+  {id:9,t:'Limpiar microondas'},
+  {id:10,t:'Limpiar manijas e interruptores'}
 ]));
 let currentMember=null;
 function saveAll(){
@@ -648,7 +655,7 @@ function saveAll(){
   localStorage.setItem('cbg3_pagos',JSON.stringify(pagos));
   localStorage.setItem('cbg3_equipo',JSON.stringify(equipo));
   localStorage.setItem('cbg3_ausencias',JSON.stringify(ausencias));
-  localStorage.setItem('cbg3_tasks_v2',JSON.stringify(masterTasks));
+  localStorage.setItem('cbg3_tasks_v3',JSON.stringify(masterTasks));
   localStorage.setItem('cbg3_horas',JSON.stringify(horasLog));
   localStorage.setItem('cbg3_horarios',JSON.stringify(horasRegistro));
   if(window.saveToFirebase){
@@ -720,98 +727,44 @@ document.getElementById('pw-modal').addEventListener('click',e=>{if(e.target===d
 // ── MASTER TASKS ──
 function renderMasterTasks(){
   const w=document.getElementById('master-tasks-list');
-  if(!masterTasks.length){w.innerHTML='<p style="color:var(--muted);font-size:13px">Sin secciones aún</p>';return;}
-  w.innerHTML=masterTasks.map(sec=>`
-    <div class="task-section" id="sec-${sec.id}">
-      <div class="task-section-header">
-        <span class="task-section-title" id="sec-title-${sec.id}">${sec.nombre}</span>
-        <div style="display:flex;gap:4px;margin-left:auto">
-          <button class="btn btn-ghost btn-sm" onclick="editSeccion(${sec.id})" style="padding:4px 8px;font-size:12px">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="delSeccion(${sec.id})" style="padding:4px 8px;font-size:12px">×</button>
-        </div>
-      </div>
-      <div class="task-section-body">
-        ${sec.tareas.map(t=>`
-          <div class="task-master-item">
-            <span class="task-master-label" id="tl-${sec.id}-${t.id}">• ${t.t}</span>
-            <div style="display:flex;gap:4px;margin-left:auto">
-              <button class="btn btn-ghost btn-sm" onclick="startEditTask(${sec.id},${t.id})" style="padding:4px 8px;font-size:12px">✏️</button>
-              <button class="task-del-btn" style="opacity:1" onclick="delTarea(${sec.id},${t.id})">×</button>
-            </div>
-          </div>`).join('')}
-        <div class="add-task-row" style="margin-top:8px">
-          <input id="nt-${sec.id}" placeholder="Nueva tarea en ${sec.nombre}..." onkeydown="if(event.key==='Enter')addTarea(${sec.id})">
-          <button class="btn btn-ghost btn-sm" onclick="addTarea(${sec.id})">+</button>
-        </div>
+  if(!masterTasks.length){w.innerHTML='<p style="color:var(--muted);font-size:13px;padding:10px 0">Sin tareas aún</p>';return;}
+  w.innerHTML=masterTasks.map(t=>`
+    <div class="task-master-item">
+      <span class="task-master-label" id="tl-${t.id}">• ${t.t}</span>
+      <div style="display:flex;gap:4px;margin-left:auto">
+        <button class="btn btn-ghost btn-sm" onclick="startEditTask(${t.id})" style="padding:4px 8px;font-size:12px">✏️</button>
+        <button class="task-del-btn" style="opacity:1" onclick="delMasterTask(${t.id})">×</button>
       </div>
     </div>`).join('');
 }
-
-function editSeccion(secId){
-  const sec=masterTasks.find(x=>x.id===secId);
-  if(!sec)return;
-  const el=document.getElementById('sec-title-'+secId);
-  if(!el)return;
-  el.outerHTML=`<input id="sec-edit-${secId}" value="${sec.nombre}" style="flex:1;padding:5px 9px;border:1px solid var(--sage);border-radius:7px;font-size:13.5px;font-weight:600;outline:none" onkeydown="if(event.key==='Enter')saveSeccion(${secId});if(event.key==='Escape')renderMasterTasks()">`;
-  document.getElementById('sec-edit-'+secId).focus();
-}
-function saveSeccion(secId){
-  const inp=document.getElementById('sec-edit-'+secId);
-  if(!inp)return;
-  const sec=masterTasks.find(x=>x.id===secId);
-  if(sec)sec.nombre=inp.value.trim()||sec.nombre;
-  saveAll();renderMasterTasks();
-}
-function delSeccion(secId){
-  if(!confirm('¿Eliminar esta sección y todas sus tareas?'))return;
-  masterTasks=masterTasks.filter(x=>x.id!==secId);
-  saveAll();renderMasterTasks();
-}
-function addTarea(secId){
-  const inp=document.getElementById('nt-'+secId),t=inp.value.trim();
+function startEditTask(id){
+  const t=masterTasks.find(x=>x.id===id);
   if(!t)return;
-  const sec=masterTasks.find(x=>x.id===secId);
-  if(!sec)return;
-  const mx=sec.tareas.length?Math.max(...sec.tareas.map(x=>x.id)):0;
-  sec.tareas.push({id:mx+1,t});
-  inp.value='';saveAll();renderMasterTasks();
-}
-function delTarea(secId,tId){
-  const sec=masterTasks.find(x=>x.id===secId);
-  if(sec)sec.tareas=sec.tareas.filter(t=>t.id!==tId);
-  saveAll();renderMasterTasks();
-}
-function startEditTask(secId,tId){
-  const sec=masterTasks.find(x=>x.id===secId);
-  const t=sec?.tareas.find(x=>x.id===tId);
-  if(!t)return;
-  const el=document.getElementById(`tl-${secId}-${tId}`);
+  const el=document.getElementById('tl-'+id);
   if(!el)return;
   const row=el.parentElement;
   row.innerHTML=`
-    <input id="eti-${secId}-${tId}" value="${t.t}" style="flex:1;padding:6px 10px;border:1px solid var(--sage);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13.5px;background:white;outline:none">
+    <input id="eti-${id}" value="${t.t}" style="flex:1;padding:6px 10px;border:1px solid var(--sage);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13.5px;background:white;outline:none">
     <div style="display:flex;gap:4px;margin-left:8px">
-      <button class="btn btn-primary btn-sm" onclick="saveEditTask(${secId},${tId})">✓</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEditTask(${id})">✓</button>
       <button class="btn btn-ghost btn-sm" onclick="renderMasterTasks()">×</button>
     </div>`;
-  const inp=document.getElementById(`eti-${secId}-${tId}`);
+  const inp=document.getElementById('eti-'+id);
   inp.focus();
-  inp.onkeydown=e=>{if(e.key==='Enter')saveEditTask(secId,tId);if(e.key==='Escape')renderMasterTasks()};
+  inp.onkeydown=e=>{if(e.key==='Enter')saveEditTask(id);if(e.key==='Escape')renderMasterTasks()};
 }
-function saveEditTask(secId,tId){
-  const inp=document.getElementById(`eti-${secId}-${tId}`);
+function saveEditTask(id){
+  const inp=document.getElementById('eti-'+id);
   if(!inp)return;
-  const sec=masterTasks.find(x=>x.id===secId);
-  const t=sec?.tareas.find(x=>x.id===tId);
+  const t=masterTasks.find(x=>x.id===id);
   if(t)t.t=inp.value.trim()||t.t;
   saveAll();renderMasterTasks();
 }
 function addMasterTask(){
-  // Now adds a new section
-  const inp=document.getElementById('new-master-task'),nombre=inp.value.trim();
-  if(!nombre)return alert('Escribe el nombre de la sección');
+  const inp=document.getElementById('new-master-task'),t=inp.value.trim();
+  if(!t)return;
   const mx=masterTasks.length?Math.max(...masterTasks.map(x=>x.id)):0;
-  masterTasks.push({id:mx+1,nombre,tareas:[]});
+  masterTasks.push({id:mx+1,t});
   inp.value='';saveAll();renderMasterTasks();
 }
 function delMasterTask(id){masterTasks=masterTasks.filter(t=>t.id!==id);saveAll();renderMasterTasks()}
@@ -820,52 +773,32 @@ function delMasterTask(id){masterTasks=masterTasks.filter(t=>t.id!==id);saveAll(
 function fillClienteModal(){
   const w=document.getElementById('client-task-selector');
   if(!masterTasks.length){w.innerHTML='<p style="color:var(--muted);font-size:13px">Primero agrega tareas en la sección "Tareas"</p>';return;}
-  w.innerHTML=masterTasks.map(sec=>`
-    <div style="margin-bottom:10px">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600;margin-bottom:6px">${sec.nombre}</div>
-      ${sec.tareas.map(t=>`
-        <div class="task-check-item" id="ctask-${sec.id}-${t.id}" onclick="toggleTCI('ctask-${sec.id}-${t.id}')">
-          <div class="tci-box"></div>
-          <span class="tci-label">${t.t}</span>
-        </div>`).join('')}
+  w.innerHTML=masterTasks.map(t=>`
+    <div class="task-check-item" id="ctask-${t.id}" onclick="toggleTCI('ctask-${t.id}')">
+      <div class="tci-box"></div>
+      <span class="tci-label">${t.t}</span>
     </div>`).join('');
 }
 function toggleTCI(id){const el=document.getElementById(id);if(!el)return;el.classList.toggle('selected');el.querySelector('.tci-box').textContent=el.classList.contains('selected')?'✓':''}
 function getSelectedTasks(prefix){
-  const selected=[];
-  masterTasks.forEach(sec=>sec.tareas.forEach(t=>{
-    if(document.getElementById(prefix+sec.id+'-'+t.id)?.classList.contains('selected'))
-      selected.push({secId:sec.id,tId:t.id,texto:t.t});
-  }));
-  return selected;
+  return masterTasks.filter(t=>document.getElementById(prefix+t.id)?.classList.contains('selected')).map(t=>({id:t.id,t:t.t}));
 }
-function saveCliente(){const n=document.getElementById('cn').value.trim();if(!n)return alert('Ingresa un nombre');clientes.push({id:Date.now(),nombre:n,tel:document.getElementById('ct').value,dir:document.getElementById('cd').value,freq:document.getElementById('cf').value,precio:document.getElementById('cp').value,notas:document.getElementById('cno').value,taskIds:getSelectedTasks('ctask-'),activo:true});saveAll();closeModal('m-cliente');['cn','ct','cd','cp','cno'].forEach(i=>document.getElementById(i).value='');renderClientes()}
+function saveCliente(){const n=document.getElementById('cn').value.trim();if(!n)return alert('Ingresa un nombre');clientes.push({id:Date.now(),nombre:n,tel:document.getElementById('ct').value,dir:document.getElementById('cd').value,freq:document.getElementById('cf').value,precio:document.getElementById('cp').value,notas:document.getElementById('cno').value,procedimientos:document.getElementById('cpro').value,taskIds:getSelectedTasks('ctask-'),activo:true});saveAll();closeModal('m-cliente');['cn','ct','cd','cp','cno','cpro'].forEach(i=>document.getElementById(i).value='');renderClientes()}
 function renderClientes(){const tb=document.getElementById('tb-clientes');if(!clientes.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="e-icon">👤</div><p>Sin clientes aún</p></div></td></tr>';return}tb.innerHTML=clientes.map(c=>`<tr><td><div class="name-cell"><div class="avatar" style="background:${aC(c.nombre)};color:white">${c.nombre[0].toUpperCase()}</div>${c.nombre}</div></td><td>${c.tel||'—'}</td><td style="font-size:12.5px;color:var(--muted);max-width:140px">${c.dir||'—'}</td><td><span class="badge badge-green">${c.freq}</span></td><td style="font-weight:600">${c.precio?'$'+Number(c.precio).toLocaleString():'—'}</td><td><span class="badge badge-blue" style="cursor:pointer" onclick="editClienteTareas(${c.id})">${(c.taskIds||[]).length} tareas ✏️</span></td><td><button class="btn btn-danger btn-sm" onclick="delCliente(${c.id})">×</button></td></tr>`).join('')}
 function editClienteTareas(id){
   const c=clientes.find(x=>x.id===id);if(!c)return;
   document.getElementById('edit-cliente-id').value=id;
   const w=document.getElementById('edit-task-selector');
   const taskIds=c.taskIds||[];
-  w.innerHTML=masterTasks.map(sec=>`
-    <div style="margin-bottom:10px">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600;margin-bottom:6px">${sec.nombre}</div>
-      ${sec.tareas.map(t=>{
-        const sel=taskIds.some(x=>x.secId===sec.id&&x.tId===t.id)||taskIds.includes(t.id);
-        return `<div class="task-check-item ${sel?'selected':''}" id="etask-${sec.id}-${t.id}" onclick="toggleTCI('etask-${sec.id}-${t.id}')"><div class="tci-box">${sel?'✓':''}</div><span class="tci-label">${t.t}</span></div>`;
-      }).join('')}
-    </div>`).join('');
+  w.innerHTML=masterTasks.map(t=>{
+    const sel=taskIds.some(x=>(x.id||x.tId)===t.id)||taskIds.includes(t.id);
+    return `<div class="task-check-item ${sel?'selected':''}" id="etask-${t.id}" onclick="toggleTCI('etask-${t.id}')"><div class="tci-box">${sel?'✓':''}</div><span class="tci-label">${t.t}</span></div>`;
+  }).join('');
   document.getElementById('m-editar-cliente').classList.add('open');
 }
 function saveClienteTareas(){
   const id=parseInt(document.getElementById('edit-cliente-id').value),c=clientes.find(x=>x.id===id);
-  if(c){
-    const selected=[];
-    masterTasks.forEach(sec=>sec.tareas.forEach(t=>{
-      if(document.getElementById('etask-'+sec.id+'-'+t.id)?.classList.contains('selected'))
-        selected.push({secId:sec.id,tId:t.id,texto:t.t});
-    }));
-    c.taskIds=selected;
-  }
+  if(c) c.taskIds=masterTasks.filter(t=>document.getElementById('etask-'+t.id)?.classList.contains('selected')).map(t=>({id:t.id,t:t.t}));
   saveAll();closeModal('m-editar-cliente');renderClientes();
 }
 function delCliente(id){if(confirm('¿Eliminar cliente?')){clientes=clientes.filter(c=>c.id!==id);saveAll();renderClientes();renderDashboard()}}
@@ -902,8 +835,8 @@ function loadCitaTasks(){
   const taskIds=c.taskIds||[];
   w.innerHTML=taskIds.map(tk=>`
     <div class="assign-row">
-      <span class="assign-task-label">• ${tk.texto||tk.t||'Tarea'}</span>
-      <select class="assign-select" id="asgn-${tk.secId}-${tk.tId}">
+      <span class="assign-task-label">• ${tk.t||tk.texto||'Tarea'}</span>
+      <select class="assign-select" id="asgn-${tk.id}">
         <option value="">— Sin asignar —</option>
         ${active.map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('')}
       </select>
@@ -919,7 +852,7 @@ function saveCita(){
   }));
   // Capture task assignments
   const taskIds=c?.taskIds||[],assignments={};
-  taskIds.forEach(tk=>{const s=document.getElementById(`asgn-${tk.secId}-${tk.tId}`);if(s&&s.value)assignments[`${tk.secId}-${tk.tId}`]=parseInt(s.value)});
+  taskIds.forEach(tk=>{const s=document.getElementById('asgn-'+tk.id);if(s&&s.value)assignments[tk.id]=parseInt(s.value)});
   citas.push({id:Date.now(),cliId:parseInt(cliId),cliNombre:c?.nombre||'Cliente',dir:c?.dir||'',tipo:document.getElementById('ci-tipo').value||'Limpieza',fecha,hora:document.getElementById('ci-hora').value,notas:document.getElementById('ci-notas').value,taskIds:c?.taskIds||[],assignments,miembrosAsignados,tasksDone:{},estado:'Pendiente'});
   saveAll();closeModal('m-cita');
   document.getElementById('ci-notas').value='';document.getElementById('ci-tipo').value='';
@@ -944,6 +877,12 @@ function toggleMiembro(id){const m=equipo.find(x=>x.id===id);if(m)m.activo=!m.ac
 function delMiembro(id){if(confirm('¿Eliminar miembro?')){equipo=equipo.filter(m=>m.id!==id);saveAll();renderEquipo()}}
 
 // ── AUSENCIAS ──
+function toggleAusForm(){
+  const body=document.getElementById('aus-form-body');
+  const toggle=document.getElementById('aus-toggle');
+  if(body.style.display==='none'){body.style.display='block';toggle.textContent='▲';}
+  else{body.style.display='none';toggle.textContent='▼';}
+}
 function reportarAusencia(){if(!currentMember)return;const fecha=document.getElementById('aus-fecha').value,motivo=document.getElementById('aus-motivo').value.trim();if(!fecha)return alert('Selecciona una fecha');ausencias.push({id:Date.now(),miembroId:currentMember.id,miembroNombre:currentMember.nombre,fecha,motivo:motivo||'Sin motivo especificado',visto:false});saveAll();document.getElementById('aus-fecha').value='';document.getElementById('aus-motivo').value='';updateAusBadge();alert('✅ Aviso enviado a Gladys')}
 function renderAusencias(){const w=document.getElementById('ausencias-list');ausencias.forEach(a=>a.visto=true);saveAll();updateAusBadge();if(!ausencias.length){w.innerHTML='<div class="card"><div class="empty"><div class="e-icon">✅</div><p>Sin ausencias reportadas</p></div></div>';return}const sorted=[...ausencias].sort((a,b)=>a.fecha.localeCompare(b.fecha));w.innerHTML='<div class="card"><div class="card-title">⚠️ Avisos de ausencia</div>'+sorted.map(a=>`<div class="ausencia-card"><div class="avatar" style="background:${aC(a.miembroNombre)};color:white">${a.miembroNombre[0].toUpperCase()}</div><div class="ausencia-info"><strong>${a.miembroNombre} — ${fmtF(a.fecha)}</strong><span>${a.motivo}</span></div><button class="btn btn-danger btn-sm" onclick="delAusencia(${a.id})">×</button></div>`).join('')+'</div>'}
 function delAusencia(id){ausencias=ausencias.filter(a=>a.id!==id);saveAll();renderAusencias()}
@@ -1040,8 +979,8 @@ function renderTeamView(){
     const asgn=c.assignments||{},tasksDone=c.tasksDone||{},done=c.estado==='Completada';
     const misTareas=[];
     (c.taskIds||[]).forEach(tk=>{
-      const key=`${tk.secId}-${tk.tId}`;
-      if(asgn[key]===currentMember.id) misTareas.push({key,texto:tk.texto||tk.t||'Tarea'});
+      const key=tk.id;
+      if(asgn[key]===currentMember.id) misTareas.push({key,texto:tk.t||tk.texto||'Tarea'});
     });
     const myInfo=(c.miembrosAsignados||[]).find(m=>m.id===currentMember.id);
     const companions=(c.miembrosAsignados||[]).filter(m=>m.id!==currentMember.id);
@@ -1053,10 +992,11 @@ function renderTeamView(){
       ${c.dir?`<div class="tc-meta">📍 ${c.dir}</div>`:''}
       ${companions.length?`<div class="tc-meta" style="color:var(--sage);font-weight:500">👥 Van contigo: ${companions.map(m=>m.nombre+(m.horaLlegada?' ('+m.horaLlegada+')':'')).join(', ')}</div>`:''}
       ${c.notas?`<div class='tc-meta'>📝 ${c.notas}</div>`:''}
+      ${c.procedimientos?`<div style='background:var(--cream);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12.5px;color:var(--ink);line-height:1.6'><strong style='font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)'>Procedimientos</strong><br>${c.procedimientos}</div>`:''}
       <div class="my-tasks-section"><div class="my-tasks-title">Mis tareas en esta casa</div>${misTareas.length?misTareas.map(t=>`<div class="t-task-item" onclick="toggleTeamTask(${c.id},'${t.key}')"><div class="t-task-box ${tasksDone[t.key]?'done':''}">${tasksDone[t.key]?'✓':''}</div><span class="t-task-label ${tasksDone[t.key]?'done':''}">${t.texto}</span></div>`).join(''):'<p style="font-size:13px;color:var(--muted)">Sin tareas específicas asignadas</p>'}</div><button class="${done?'complete-btn done-btn':'complete-btn'}" ${done?'disabled':''} onclick="markDone(${c.id})">${done?'✅ Completada':'✓ Marcar como lista'}</button></div>`;
   }).join('');
 }
-function toggleTeamTask(citaId,taskKey){const c=citas.find(x=>x.id===citaId);if(!c)return;if(!c.tasksDone)c.tasksDone={};c.tasksDone[taskKey]=!c.tasksDone[taskKey];saveAll();renderTeamView()}
+function toggleTeamTask(citaId,taskKey){const c=citas.find(x=>x.id===citaId);if(!c)return;if(!c.tasksDone)c.tasksDone={};c.tasksDone[taskKey]=!c.tasksDone[taskKey];saveAll();renderTeamView();}
 function markDone(citaId){const c=citas.find(x=>x.id===citaId);if(c)c.estado='Completada';saveAll();renderTeamView()}
 
 
