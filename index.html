@@ -613,7 +613,8 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
       <button class="btn btn-ghost btn-sm" onclick="logout()">← Salir</button>
     </div>
     <div class="date-banner"><div><div class="dl">Hoy</div><div class="dv" id="team-date-val">—</div></div><div class="di">🧹</div></div>
-    <div class="ausencia-form-card">
+    <div id="team-content"></div>
+    <div class="ausencia-form-card" style="margin-top:16px">
       <h3 onclick="toggleAusForm()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">⚠️ Reportar ausencia <span id="aus-toggle" style="font-size:14px;color:var(--muted)">▼</span></h3>
       <div id="aus-form-body" style="display:none">
         <div class="aus-row" style="margin-top:12px">
@@ -623,7 +624,6 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
         </div>
       </div>
     </div>
-    <div id="team-content"></div>
   </div>
 </div>
 
@@ -677,7 +677,11 @@ function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.re
 
 // ── MEMBER SELECT ──
 function renderMemberSelect(){const w=document.getElementById('member-list-btns'),a=equipo.filter(m=>m.activo);if(!a.length){w.innerHTML='<p style="color:rgba(255,255,255,0.4);font-size:14px;text-align:center;padding:20px">No hay miembros activos.<br>Pídele a Gladys que te agregue.</p>';return}w.innerHTML=a.map(m=>`<button class="member-btn" onclick="selectMember(${m.id})"><div class="member-av" style="background:${aC(m.nombre)}">${m.nombre[0].toUpperCase()}</div><div class="member-btn-info">${m.nombre}<small>${m.rol}</small></div></button>`).join('')}
-function selectMember(id){currentMember=equipo.find(m=>m.id===id);goTo('screen-team');initTeam()}
+async function selectMember(id){
+  currentMember=equipo.find(m=>m.id===id);
+  goTo('screen-team');
+  await initTeam();
+}
 
 // ── ADMIN NAV ──
 async function initAdmin(){
@@ -907,31 +911,44 @@ function renderDashboard(){
 
 // ── TEAM VIEW ──
 async function initTeam(){
+  // Load fresh data from Firebase
   if(window.loadFromFirebase){
-    const data = await window.loadFromFirebase();
-    if(data){
-      clientes = data.clientes || clientes;
-      citas = data.citas || citas;
-      pagos = data.pagos || pagos;
-      equipo = data.equipo || equipo;
-      ausencias = data.ausencias || ausencias;
-      masterTasks = data.masterTasks || masterTasks;
-      horasLog = data.horasLog || horasLog;
-    }
+    try{
+      const data = await window.loadFromFirebase();
+      if(data){
+        clientes = data.clientes || [];
+        citas = data.citas || [];
+        pagos = data.pagos || [];
+        equipo = data.equipo || [];
+        ausencias = data.ausencias || [];
+        masterTasks = (data.masterTasks&&data.masterTasks.length) ? data.masterTasks : masterTasks;
+        horasLog = data.horasLog || [];
+        horasRegistro = data.horasRegistro || [];
+        // Re-find currentMember in case equipo was updated
+        if(currentMember) currentMember = equipo.find(m=>m.id===currentMember.id) || currentMember;
+      }
+    } catch(e){ console.error('Firebase load error:', e); }
   }
+  // Start realtime sync
   if(window.startRealtimeSync){
     window.startRealtimeSync(function(data){
-      clientes = data.clientes || [];
-      citas = data.citas || [];
-      equipo = data.equipo || [];
-      masterTasks = data.masterTasks || masterTasks;
-      ausencias = data.ausencias || [];
+      clientes=data.clientes||[];citas=data.citas||[];
+      equipo=data.equipo||[];masterTasks=(data.masterTasks&&data.masterTasks.length)?data.masterTasks:masterTasks;
+      ausencias=data.ausencias||[];horasRegistro=data.horasRegistro||[];
+      if(currentMember) currentMember=equipo.find(m=>m.id===currentMember.id)||currentMember;
       renderTeamView();
     });
   }
-  const now=new Date();document.getElementById('team-date-val').textContent=now.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});document.getElementById('team-who-label').textContent=currentMember?currentMember.nombre+' · '+currentMember.rol:'';document.getElementById('aus-fecha').value=now.toISOString().split('T')[0];renderTeamView()}
+  const now=new Date();const tdv=document.getElementById('team-date-val');
+  if(tdv) tdv.textContent=now.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
+  const twl=document.getElementById('team-who-label');
+  if(twl) twl.textContent=currentMember?currentMember.nombre+' · '+currentMember.rol:'';const ausFecha=document.getElementById('aus-fecha');
+  if(ausFecha) ausFecha.value=now.toISOString().split('T')[0];
+  renderTeamView();}
 function renderTeamView(){
   if(!currentMember)return;
+  const cont=document.getElementById('team-content');
+  if(!cont)return;
   const today=new Date().toISOString().split('T')[0];
   const citasHoy=citas.filter(c=>c.fecha===today).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
   const misCitas=citasHoy.filter(c=>{
@@ -939,7 +956,6 @@ function renderTeamView(){
     const enMiembros=(c.miembrosAsignados||[]).some(m=>m.id===currentMember.id);
     return Object.values(asgn).includes(currentMember.id)||enMiembros;
   });
-  const cont=document.getElementById('team-content');
   
   // Calculate earnings this week
   const today2=new Date();
