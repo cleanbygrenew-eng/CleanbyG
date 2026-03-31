@@ -677,10 +677,10 @@ function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.re
 
 // ── MEMBER SELECT ──
 function renderMemberSelect(){const w=document.getElementById('member-list-btns'),a=equipo.filter(m=>m.activo);if(!a.length){w.innerHTML='<p style="color:rgba(255,255,255,0.4);font-size:14px;text-align:center;padding:20px">No hay miembros activos.<br>Pídele a Gladys que te agregue.</p>';return}w.innerHTML=a.map(m=>`<button class="member-btn" onclick="selectMember(${m.id})"><div class="member-av" style="background:${aC(m.nombre)}">${m.nombre[0].toUpperCase()}</div><div class="member-btn-info">${m.nombre}<small>${m.rol}</small></div></button>`).join('')}
-async function selectMember(id){
+function selectMember(id){
   currentMember=equipo.find(m=>m.id===id);
   goTo('screen-team');
-  await initTeam();
+  initTeam();
 }
 
 // ── ADMIN NAV ──
@@ -985,13 +985,13 @@ function renderTeamView(){
   }
   
   if(!misCitas.length){
-    cont.innerHTML=earningsHtml+exitHtml+`<div class="no-tasks"><div class="icon">🌟</div><p style="font-weight:700;font-size:16px;color:var(--ink);margin-bottom:6px">¡Sin tareas asignadas hoy!</p><p>Si crees que hay un error, comunícate con Gladys.</p></div>`;
+    cont.innerHTML=`<div class="no-tasks"><div class="icon">🌟</div><p style="font-weight:700;font-size:16px;color:var(--ink);margin-bottom:6px">¡Sin tareas asignadas hoy!</p><p>Si crees que hay un error, comunícate con Gladys.</p></div>`+earningsHtml+exitHtml;
     return;
   }
   
-  // Prepend earnings and exit to content
+  // Tasks first, then earnings
   const extraHtml = earningsHtml + exitHtml;
-  cont.innerHTML=extraHtml+`<div class="section-lbl">Mis tareas de hoy — ${misCitas.length} casa${misCitas.length>1?'s':''}</div>`+misCitas.map(c=>{
+  cont.innerHTML=`<div class="section-lbl">Mis tareas de hoy — ${misCitas.length} casa${misCitas.length>1?'s':''}</div>`+misCitas.map(c=>{
     const asgn=c.assignments||{},tasksDone=c.tasksDone||{},done=c.estado==='Completada';
     const misTareas=[];
     (c.taskIds||[]).forEach(tk=>{
@@ -1010,7 +1010,7 @@ function renderTeamView(){
       ${c.notas?`<div class='tc-meta'>📝 ${c.notas}</div>`:''}
       ${c.procedimientos?`<div style='background:var(--cream);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12.5px;color:var(--ink);line-height:1.6'><strong style='font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)'>Procedimientos</strong><br>${c.procedimientos}</div>`:''}
       <div class="my-tasks-section"><div class="my-tasks-title">Mis tareas en esta casa</div>${misTareas.length?misTareas.map(t=>`<div class="t-task-item" onclick="toggleTeamTask(${c.id},'${t.key}')"><div class="t-task-box ${tasksDone[t.key]?'done':''}">${tasksDone[t.key]?'✓':''}</div><span class="t-task-label ${tasksDone[t.key]?'done':''}">${t.texto}</span></div>`).join(''):'<p style="font-size:13px;color:var(--muted)">Sin tareas específicas asignadas</p>'}</div><button class="${done?'complete-btn done-btn':'complete-btn'}" ${done?'disabled':''} onclick="markDone(${c.id})">${done?'✅ Completada':'✓ Marcar como lista'}</button></div>`;
-  }).join('');
+  }).join('')+extraHtml;
 }
 function toggleTeamTask(citaId,taskKey){const c=citas.find(x=>x.id===citaId);if(!c)return;if(!c.tasksDone)c.tasksDone={};c.tasksDone[taskKey]=!c.tasksDone[taskKey];saveAll();renderTeamView();}
 function markDone(citaId){const c=citas.find(x=>x.id===citaId);if(c)c.estado='Completada';saveAll();renderTeamView()}
