@@ -510,14 +510,14 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
       <input type="hidden" id="nom-inicio">
       <input type="hidden" id="nom-fin">
       <input type="hidden" id="nom-semana-label">
-      <div id="nomina-resumen" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:22px"></div>
+
       <div class="card">
         <div class="card-title">📋 Detalle por miembro <span id="nom-detalle-semana" style="font-size:12px;color:var(--muted);font-weight:400;margin-left:6px"></span></div>
         <div id="nomina-detalle"></div>
       </div>
       <div class="card" style="margin-top:16px">
-        <div class="card-title">⏱️ Registro de horarios</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Registra la entrada de cada miembro. Puedes editar cualquier registro si hay un error.</p>
+        <div class="card-title">⏱️ Registro de horarios — <span id="reg-semana-label" style="font-size:13px;color:var(--sage);font-weight:500"></span></div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Selecciona el día dentro de la semana. Puedes editar si hay un error.</p>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;flex-wrap:wrap">
           <div class="form-group"><label>Miembro</label><select id="hr-miembro"></select></div>
           <div class="form-group"><label>Fecha</label><input type="date" id="hr-fecha"></div>
@@ -1066,15 +1066,16 @@ function updateWeekDisplay(){
   document.getElementById('nom-inicio').value=inicio;
   document.getElementById('nom-fin').value=fin;
   document.getElementById('nom-semana-label').value='Semana '+weekNum+' · '+mon.getFullYear();
-  document.getElementById('nom-fechas-label').textContent=
-    mon.toLocaleDateString('es-MX',{day:'numeric',month:'short'})+' – '+
-    sun.toLocaleDateString('es-MX',{day:'numeric',month:'short'});
+  const fechasStr=mon.toLocaleDateString('es-MX',{day:'numeric',month:'short'})+' – '+sun.toLocaleDateString('es-MX',{day:'numeric',month:'short'});
+  document.getElementById('nom-fechas-label').textContent=fechasStr;
+  const rsl=document.getElementById('reg-semana-label');
+  if(rsl) rsl.textContent='Semana '+weekNum+' ('+fechasStr+')';
   // Update selector
   const sel=document.getElementById('nom-semana-sel');
   if(sel) sel.value=currentWeekOffset;
-  // Update hr-fecha to Monday of selected week (so registros go to right week)
+  // Update hr-fecha range hints
   const hrf=document.getElementById('hr-fecha');
-  if(hrf) hrf.value=inicio;
+  if(hrf){ hrf.min=inicio; hrf.max=fin; hrf.value=inicio; }
   renderNomina();
   renderHorasLog();
 }
@@ -1104,8 +1105,7 @@ function initNomina(){
   populateWeekSelector();
   const sel=document.getElementById('hr-miembro');
   if(sel) sel.innerHTML=equipo.filter(m=>m.activo).map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('');
-  const hrf=document.getElementById('hr-fecha');
-  if(hrf) hrf.value=new Date().toISOString().split('T')[0];
+  // hr-fecha will be set by updateWeekDisplay
   updateWeekDisplay();
 }
 
@@ -1134,15 +1134,7 @@ function renderNomina(){
     return {m,diasTrabajados,totalHrs:totalHrs.toFixed(1),tarifa,total};
   });
 
-  resWrap.innerHTML=results.map(r=>`
-    <div class="nomina-card">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <div class="tm-avatar" style="background:${aC(r.m.nombre)};width:36px;height:36px;border-radius:9px;font-size:14px">${r.m.nombre[0].toUpperCase()}</div>
-        <div class="nomina-name">${r.m.nombre}</div>
-      </div>
-      <div class="nomina-amount">$${r.total.toFixed(2)}</div>
-      <div class="nomina-detail">${Number(r.totalHrs).toFixed(2)} hrs × $${r.tarifa}/hr</div>
-    </div>`).join('');
+// nomina-resumen removed
 
   const inicio2=document.getElementById('nom-inicio')?.value||'';
   const fin2=document.getElementById('nom-fin')?.value||'';
