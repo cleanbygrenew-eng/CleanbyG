@@ -1071,6 +1071,9 @@ function updateWeekDisplay(){
   // Update selector
   const sel=document.getElementById('nom-semana-sel');
   if(sel) sel.value=currentWeekOffset;
+  // Update hr-fecha to Monday of selected week (so registros go to right week)
+  const hrf=document.getElementById('hr-fecha');
+  if(hrf) hrf.value=inicio;
   renderNomina();
   renderHorasLog();
 }
@@ -1122,7 +1125,7 @@ function renderNomina(){
 
   // For each member calculate hours using horasRegistro
   const results=activos.map(m=>{
-    const regs=horasRegistro.filter(h=>h.miembroId===m.id&&h.fecha>=inicio&&h.fecha<=fin);
+    const regs=horasRegistro.filter(h=>Number(h.miembroId)===Number(m.id)&&h.fecha>=inicio&&h.fecha<=fin);
     const totalHrs=regs.reduce((s,h)=>s+calcHrsEntradaSalida(h.entrada,h.salida),0);
     const tarifa=m.tarifa||0;
     const total=totalHrs*tarifa;
@@ -1177,7 +1180,7 @@ function registrarEntrada(){
     existing.entrada=entrada;
     if(salida) existing.salida=salida;
   } else {
-    horasRegistro.push({id:Date.now(),miembroId:mId,miembroNombre:m?.nombre||'—',fecha,entrada,salida});
+    horasRegistro.push({id:Date.now(),miembroId:Number(mId),miembroNombre:m?.nombre||'—',fecha,entrada,salida});
   }
   saveAll();
   document.getElementById('hr-entrada').value='';
@@ -1206,6 +1209,7 @@ function renderHorasLog(){
   const fin=document.getElementById('nom-fin')?.value||'';
   const sorted=[...horasRegistro]
     .filter(h=>!inicio||!fin||(h.fecha>=inicio&&h.fecha<=fin))
+    .filter(h=>h.entrada||h.salida)
     .sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.miembroNombre.localeCompare(b.miembroNombre));
   if(!sorted.length){wrap.innerHTML='<p style="color:var(--muted);font-size:13px">Sin registros aún. Empieza registrando las entradas de la semana.</p>';return;}
   wrap.innerHTML='<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:10px">Todos los registros</div>'+
