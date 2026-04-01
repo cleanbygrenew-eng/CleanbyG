@@ -624,13 +624,14 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
     </div>
     <div class="date-banner"><div><div class="dl">Hoy</div><div class="dv" id="team-date-val">—</div></div><div class="di">🧹</div></div>
     <div id="team-content"></div>
-    <div class="ausencia-form-card" style="margin-top:16px">
-      <h3 onclick="toggleAusForm()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">⚠️ Reportar ausencia <span id="aus-toggle" style="font-size:14px;color:var(--muted)">▼</span></h3>
-      <div id="aus-form-body" style="display:none">
-        <div class="aus-row" style="margin-top:12px">
-          <input type="date" id="aus-fecha">
-          <textarea id="aus-motivo" placeholder="Motivo de la ausencia..." rows="2" style="resize:none"></textarea>
-          <button class="btn btn-gold" style="width:100%" onclick="reportarAusencia()">Enviar aviso a Gladys</button>
+    <div style="text-align:center;margin-top:24px;padding-bottom:16px">
+      <span onclick="toggleAusForm()" style="font-size:13px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px">¿Necesitas un permiso?</span>
+      <div id="aus-form-body" style="display:none;margin-top:14px;background:white;border:1px solid var(--border);border-radius:12px;padding:16px;text-align:left">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--ink)">Solicitar permiso</div>
+        <div class="aus-row">
+          <input type="date" id="aus-fecha" placeholder="Fecha de ausencia">
+          <textarea id="aus-motivo" placeholder="¿Cuál es el motivo?" rows="2" style="resize:none"></textarea>
+          <button class="btn btn-ghost" style="width:100%;border-color:var(--border)" onclick="reportarAusencia()">Enviar solicitud a Gladys</button>
         </div>
       </div>
     </div>
@@ -671,7 +672,7 @@ function saveAll(){
   if(window.saveToFirebase){
     window.saveToFirebase({
       clientes,citas,pagos,equipo,ausencias,
-      masterTasks,horasLog,
+      masterTasks,horasLog,horasRegistro,
       updated:new Date().toISOString()
     });
   }
