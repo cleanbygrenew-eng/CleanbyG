@@ -495,12 +495,19 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
 
 
     <div id="page-nomina" class="page">
-      <div class="page-header"><div><h2>Nómina semanal</h2><p>Lo que genera cada miembro según sus horas</p></div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <div class="form-group" style="margin:0"><label style="font-size:12px">Semana del</label><input type="date" id="nom-inicio" onchange="renderNomina()"></div>
-          <div class="form-group" style="margin:0"><label style="font-size:12px">Al</label><input type="date" id="nom-fin" onchange="renderNomina()"></div>
+      <div class="page-header">
+        <div><h2>Nómina semanal</h2><p>Lo que genera cada miembro según sus horas</p></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-ghost btn-sm" onclick="cambiarSemana(-1)">← Anterior</button>
+          <div style="text-align:center;min-width:120px">
+            <div style="font-weight:600;font-size:15px" id="nom-semana-label">—</div>
+            <div style="font-size:12px;color:var(--muted)" id="nom-fechas-label">—</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="cambiarSemana(1)">Siguiente →</button>
         </div>
       </div>
+      <input type="hidden" id="nom-inicio">
+      <input type="hidden" id="nom-fin">
       <div id="nomina-resumen" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:22px"></div>
       <div class="card">
         <div class="card-title">📋 Detalle por miembro</div>
@@ -1025,20 +1032,52 @@ function markDone(citaId){const c=citas.find(x=>x.id===citaId);if(c)c.estado='Co
 
 
 // ── NÓMINA ──
-function initNomina(){
-  // Set default week (Mon-Sun of current week)
+let currentWeekOffset = 0;
+
+function getWeekDates(offset){
   const now=new Date();
   const day=now.getDay(),diff=now.getDate()-day+(day===0?-6:1);
-  const mon=new Date(now.setDate(diff));
+  const mon=new Date(now);mon.setDate(diff + offset*7);
   const sun=new Date(mon);sun.setDate(mon.getDate()+6);
-  document.getElementById('nom-inicio').value=mon.toISOString().split('T')[0];
-  document.getElementById('nom-fin').value=sun.toISOString().split('T')[0];
-  // Fill miembro select
-  const sel=document.getElementById('hr-miembro');
-  sel.innerHTML=equipo.filter(m=>m.activo).map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('');
-  document.getElementById('hr-fecha').value=new Date().toISOString().split('T')[0];
+  return {mon, sun};
+}
+
+function getWeekNumber(date){
+  const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+  const dayNum=d.getUTCDay()||7;
+  d.setUTCDate(d.getUTCDate()+4-dayNum);
+  const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d-yearStart)/86400000)+1)/7);
+}
+
+function cambiarSemana(dir){
+  currentWeekOffset += dir;
+  updateWeekDisplay();
+}
+
+function updateWeekDisplay(){
+  const {mon,sun}=getWeekDates(currentWeekOffset);
+  const weekNum=getWeekNumber(mon);
+  const inicio=mon.toISOString().split('T')[0];
+  const fin=sun.toISOString().split('T')[0];
+  document.getElementById('nom-inicio').value=inicio;
+  document.getElementById('nom-fin').value=fin;
+  document.getElementById('nom-semana-label').textContent='Semana '+weekNum+' · '+mon.getFullYear();
+  document.getElementById('nom-fechas-label').textContent=
+    mon.toLocaleDateString('es-MX',{day:'numeric',month:'short'})+' – '+
+    sun.toLocaleDateString('es-MX',{day:'numeric',month:'short'});
   renderNomina();
   renderHorasLog();
+}
+
+function initNomina(){
+  currentWeekOffset=0;
+  // Fill miembro select
+  const sel=document.getElementById('hr-miembro');
+  if(sel) sel.innerHTML=equipo.filter(m=>m.activo).map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('');
+  const hrf=document.getElementById('hr-fecha');
+  if(hrf) hrf.value=new Date().toISOString().split('T')[0];
+  updateWeekDisplay();
 }
 
 function calcHorasDia(entrada,salida){
@@ -1076,6 +1115,9 @@ function renderNomina(){
       <div class="nomina-detail">${r.totalHrs} hrs × $${r.tarifa}/hr</div>
     </div>`).join('');
 
+  const inicio2=document.getElementById('nom-inicio')?.value||'';
+  const fin2=document.getElementById('nom-fin')?.value||'';
+  const semLabel=document.getElementById('nom-semana-label')?.textContent||'';
   const grandTotal=results.reduce((s,r)=>s+r.total,0);
   detWrap.innerHTML=`
     ${results.map(r=>`
@@ -1090,7 +1132,8 @@ function renderNomina(){
         <div class="nomina-row-hrs">${r.totalHrs} hrs</div>
       </div>
     </div>`).join('')}
-    <div style="display:flex;justify-content:flex-end;padding-top:14px;border-top:2px solid var(--border);margin-top:4px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:14px;border-top:2px solid var(--border);margin-top:4px">
+      <div style="font-size:12px;color:var(--muted)">${semLabel}</div>
       <div style="text-align:right"><div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total a pagar</div><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--ink)">$${grandTotal.toLocaleString()}</div></div>
     </div>`;
 }
@@ -1132,7 +1175,11 @@ function registrarSalida(miembroId, fecha){
 function renderHorasLog(){
   const wrap=document.getElementById('horas-log');
   if(!wrap)return;
-  const sorted=[...horasRegistro].sort((a,b)=>b.fecha.localeCompare(a.fecha)||a.miembroNombre.localeCompare(b.miembroNombre));
+  const inicio=document.getElementById('nom-inicio')?.value||'';
+  const fin=document.getElementById('nom-fin')?.value||'';
+  const sorted=[...horasRegistro]
+    .filter(h=>!inicio||!fin||(h.fecha>=inicio&&h.fecha<=fin))
+    .sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.miembroNombre.localeCompare(b.miembroNombre));
   if(!sorted.length){wrap.innerHTML='<p style="color:var(--muted);font-size:13px">Sin registros aún. Empieza registrando las entradas de la semana.</p>';return;}
   wrap.innerHTML='<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:10px">Todos los registros</div>'+
     sorted.map(h=>{
