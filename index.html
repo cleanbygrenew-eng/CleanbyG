@@ -1045,9 +1045,11 @@ let currentWeekOffset = 0;
 
 function getWeekDates(offset){
   const now=new Date();
-  const day=now.getDay(),diff=now.getDate()-day+(day===0?-6:1);
-  const mon=new Date(now.getFullYear(),now.getMonth(),diff + offset*7);
-  const sun=new Date(now.getFullYear(),now.getMonth(),diff + offset*7 + 6);
+  // getDay(): 0=Sun,1=Mon...6=Sat. We want Monday as start.
+  const day=now.getDay();
+  const daysToMon=day===0?-6:1-day; // how many days back to Monday
+  const mon=new Date(now.getFullYear(),now.getMonth(),now.getDate()+daysToMon+offset*7);
+  const sun=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+6);
   return {mon, sun};
 }
 
