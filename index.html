@@ -1119,25 +1119,18 @@ function renderNomina(){
   const inicio=document.getElementById('nom-inicio')?.value;
   const fin=document.getElementById('nom-fin')?.value;
   if(!inicio||!fin)return;
-  const resWrap=document.getElementById('nomina-resumen');
   const detWrap=document.getElementById('nomina-detalle');
   const activos=equipo.filter(m=>m.activo);
-  if(!activos.length){resWrap.innerHTML='<p style="color:var(--muted);font-size:13px">Sin miembros activos</p>';detWrap.innerHTML='';return;}
-
-  // For each member calculate hours using horasRegistro
+  if(!activos.length){detWrap.innerHTML='<p style="color:var(--muted);font-size:13px">Sin miembros activos</p>';return;}
   const results=activos.map(m=>{
     const regs=horasRegistro.filter(h=>Number(h.miembroId)===Number(m.id)&&h.fecha>=inicio&&h.fecha<=fin);
     const totalHrs=regs.reduce((s,h)=>s+calcHrsEntradaSalida(h.entrada,h.salida),0);
     const tarifa=m.tarifa||0;
     const total=totalHrs*tarifa;
     const diasTrabajados=regs.filter(h=>h.salida).length;
-    return {m,diasTrabajados,totalHrs:totalHrs.toFixed(1),tarifa,total};
+    return {m,diasTrabajados,totalHrs:totalHrs.toFixed(2),tarifa,total};
   });
-
-// nomina-resumen removed
-
-  const inicio2=document.getElementById('nom-inicio')?.value||'';
-  const fin2=document.getElementById('nom-fin')?.value||'';
+  const inicio2=inicio, fin2=fin;
   const semLabel=document.getElementById('nom-semana-label')?.value||'';
   const grandTotal=results.reduce((s,r)=>s+r.total,0);
   const dsl=document.getElementById('nom-detalle-semana');
@@ -1148,11 +1141,11 @@ function renderNomina(){
       <div class="avatar" style="background:${aC(r.m.nombre)};color:white">${r.m.nombre[0].toUpperCase()}</div>
       <div class="nomina-row-info">
         <div class="nomina-row-name">${r.m.nombre} <span class="badge badge-gray" style="font-size:10.5px">${r.m.rol}</span></div>
-        <div class="nomina-row-meta">$${r.tarifa}/hr · ${r.diasTrabajados} días registrados esta semana</div>
+        <div class="nomina-row-meta">$${r.tarifa}/hr · ${r.diasTrabajados} días registrados</div>
       </div>
       <div>
         <div class="nomina-row-total">$${r.total.toFixed(2)}</div>
-        <div class="nomina-row-hrs">${Number(r.totalHrs).toFixed(2)} hrs</div>
+        <div class="nomina-row-hrs">${r.totalHrs} hrs</div>
       </div>
     </div>`).join('')}
     <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:14px;border-top:2px solid var(--border);margin-top:4px">
@@ -1160,6 +1153,7 @@ function renderNomina(){
       <div style="text-align:right"><div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total a pagar</div><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--ink)">$${grandTotal.toFixed(2)}</div></div>
     </div>`;
 }
+
 
 function registrarEntrada(){
   const mId=parseInt(document.getElementById('hr-miembro').value);
