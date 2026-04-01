@@ -1046,16 +1046,20 @@ let currentWeekOffset = 0;
 function getWeekDates(offset){
   const now=new Date();
   const day=now.getDay(),diff=now.getDate()-day+(day===0?-6:1);
-  const mon=new Date(now);mon.setDate(diff + offset*7);
-  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  const mon=new Date(now.getFullYear(),now.getMonth(),diff + offset*7);
+  const sun=new Date(now.getFullYear(),now.getMonth(),diff + offset*7 + 6);
   return {mon, sun};
 }
 
+function dateToStr(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
 function getWeekNumber(date){
-  const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
-  const dayNum=d.getUTCDay()||7;
-  d.setUTCDate(d.getUTCDate()+4-dayNum);
-  const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+  const dayNum=(d.getDay()||7);
+  d.setDate(d.getDate()+4-dayNum);
+  const yearStart=new Date(d.getFullYear(),0,1);
   return Math.ceil((((d-yearStart)/86400000)+1)/7);
 }
 
@@ -1067,8 +1071,8 @@ function cambiarSemana(dir){
 function updateWeekDisplay(){
   const {mon,sun}=getWeekDates(currentWeekOffset);
   const weekNum=getWeekNumber(mon);
-  const inicio=mon.toISOString().split('T')[0];
-  const fin=sun.toISOString().split('T')[0];
+  const inicio=dateToStr(mon);
+  const fin=dateToStr(sun);
   document.getElementById('nom-inicio').value=inicio;
   document.getElementById('nom-fin').value=fin;
   document.getElementById('nom-semana-label').value='Semana '+weekNum+' · '+mon.getFullYear();
@@ -1101,7 +1105,7 @@ function populateWeekSelector(){
     const {mon}=getWeekDates(i);
     const wn=getWeekNumber(mon);
     const {mon:m2,sun:s2}=getWeekDates(i);
-    const sk='semana-'+m2.toISOString().split('T')[0]+'-'+s2.toISOString().split('T')[0];
+    const sk='semana-'+dateToStr(m2)+'-'+dateToStr(s2);
     const paid=semanasPagadas.includes(sk);
     const label='Semana '+wn+(paid?' ✅':'')+' '+(i===0?'(actual)':i===-1?'(anterior)':'');
     options.push(`<option value="${i}" ${i===currentWeekOffset?'selected':''}>${label}</option>`);
