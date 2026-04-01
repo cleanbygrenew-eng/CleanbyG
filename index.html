@@ -497,20 +497,22 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
     <div id="page-nomina" class="page">
       <div class="page-header">
         <div><h2>Nómina semanal</h2><p>Lo que genera cada miembro según sus horas</p></div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <button class="btn btn-ghost btn-sm" onclick="cambiarSemana(-1)">← Anterior</button>
-          <div style="text-align:center;min-width:120px">
-            <div style="font-weight:600;font-size:15px" id="nom-semana-label">—</div>
-            <div style="font-size:12px;color:var(--muted)" id="nom-fechas-label">—</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="cambiarSemana(-1)">←</button>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:12px;color:var(--muted);font-weight:500">Semana</label>
+            <select id="nom-semana-sel" onchange="irASemana()" style="padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;background:var(--cream);outline:none;cursor:pointer"></select>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="cambiarSemana(1)">Siguiente →</button>
+          <button class="btn btn-ghost btn-sm" onclick="cambiarSemana(1)">→</button>
+          <div style="font-size:12px;color:var(--muted)" id="nom-fechas-label">—</div>
         </div>
       </div>
       <input type="hidden" id="nom-inicio">
       <input type="hidden" id="nom-fin">
+      <input type="hidden" id="nom-semana-label">
       <div id="nomina-resumen" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:22px"></div>
       <div class="card">
-        <div class="card-title">📋 Detalle por miembro</div>
+        <div class="card-title">📋 Detalle por miembro <span id="nom-detalle-semana" style="font-size:12px;color:var(--muted);font-weight:400;margin-left:6px"></span></div>
         <div id="nomina-detalle"></div>
       </div>
       <div class="card" style="margin-top:16px">
@@ -981,22 +983,22 @@ function renderTeamView(){
   // Build per-day detail
   const diasDetalle=misRegistros.map(r=>{
     const hrs=calcHrsEntradaSalida(r.entrada,r.salida);
-    return hrs>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:12px"><span>${fmtF(r.fecha)}</span><span>${r.entrada||'—'} → ${r.salida||'...'} · ${hrs.toFixed(1)}hrs</span></div>`:'';
+    return hrs>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:12px"><span>${fmtF(r.fecha)}</span><span>${r.entrada||'—'} → ${r.salida||'...'} · ${hrs.toFixed(2)}hrs</span></div>`:'';
   }).filter(Boolean).join('');
   
   let earningsHtml=`<div class="earnings-banner">
     <div class="el">Mis ganancias esta semana</div>
-    <div class="ev">$${gananciaSemana.toLocaleString()}</div>
-    <div class="es">${hrsSemanales.toFixed(1)} hrs × $${currentMember.tarifa||0}/hr</div>
+    <div class="ev">$${gananciaSemana.toFixed(2)}</div>
+    <div class="es">${hrsSemanales.toFixed(2)} hrs × $${currentMember.tarifa||0}/hr</div>
     ${diasDetalle?`<div style="margin-top:10px;border-top:1px solid rgba(255,255,255,0.15);padding-top:8px">${diasDetalle}</div>`:''}
   </div>`;
   
-  // Exit button
+  // Exit button - always show
   let exitHtml='';
-  if(todayReg&&todayReg.entrada&&!todayReg.salida){
+  if(todayReg&&todayReg.salida){
+    exitHtml=`<button class="register-exit-btn done" disabled>✅ Salida registrada: ${todayReg.salida}</button>`;
+  } else {
     exitHtml=`<button class="register-exit-btn" onclick="registrarSalidaTeam()">🔴 Registrar mi salida de hoy</button>`;
-  } else if(todayReg&&todayReg.salida){
-    exitHtml=`<button class="register-exit-btn done" disabled>✅ Salida registrada hoy: ${todayReg.salida}</button>`;
   }
   
   if(!misCitas.length){
@@ -1062,17 +1064,40 @@ function updateWeekDisplay(){
   const fin=sun.toISOString().split('T')[0];
   document.getElementById('nom-inicio').value=inicio;
   document.getElementById('nom-fin').value=fin;
-  document.getElementById('nom-semana-label').textContent='Semana '+weekNum+' · '+mon.getFullYear();
+  document.getElementById('nom-semana-label').value='Semana '+weekNum+' · '+mon.getFullYear();
   document.getElementById('nom-fechas-label').textContent=
     mon.toLocaleDateString('es-MX',{day:'numeric',month:'short'})+' – '+
     sun.toLocaleDateString('es-MX',{day:'numeric',month:'short'});
+  // Update selector
+  const sel=document.getElementById('nom-semana-sel');
+  if(sel) sel.value=currentWeekOffset;
   renderNomina();
   renderHorasLog();
 }
 
+function irASemana(){
+  const sel=document.getElementById('nom-semana-sel');
+  if(!sel)return;
+  currentWeekOffset=parseInt(sel.value);
+  updateWeekDisplay();
+}
+
+function populateWeekSelector(){
+  const sel=document.getElementById('nom-semana-sel');
+  if(!sel)return;
+  const options=[];
+  for(let i=-26;i<=4;i++){
+    const {mon}=getWeekDates(i);
+    const wn=getWeekNumber(mon);
+    const label='Semana '+wn+(i===0?' (actual)':i===-1?' (anterior)':'');
+    options.push(`<option value="${i}" ${i===currentWeekOffset?'selected':''}>${label}</option>`);
+  }
+  sel.innerHTML=options.join('');
+}
+
 function initNomina(){
   currentWeekOffset=0;
-  // Fill miembro select
+  populateWeekSelector();
   const sel=document.getElementById('hr-miembro');
   if(sel) sel.innerHTML=equipo.filter(m=>m.activo).map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('');
   const hrf=document.getElementById('hr-fecha');
@@ -1111,14 +1136,16 @@ function renderNomina(){
         <div class="tm-avatar" style="background:${aC(r.m.nombre)};width:36px;height:36px;border-radius:9px;font-size:14px">${r.m.nombre[0].toUpperCase()}</div>
         <div class="nomina-name">${r.m.nombre}</div>
       </div>
-      <div class="nomina-amount">$${r.total.toLocaleString()}</div>
-      <div class="nomina-detail">${r.totalHrs} hrs × $${r.tarifa}/hr</div>
+      <div class="nomina-amount">$${r.total.toFixed(2)}</div>
+      <div class="nomina-detail">${Number(r.totalHrs).toFixed(2)} hrs × $${r.tarifa}/hr</div>
     </div>`).join('');
 
   const inicio2=document.getElementById('nom-inicio')?.value||'';
   const fin2=document.getElementById('nom-fin')?.value||'';
-  const semLabel=document.getElementById('nom-semana-label')?.textContent||'';
+  const semLabel=document.getElementById('nom-semana-label')?.value||'';
   const grandTotal=results.reduce((s,r)=>s+r.total,0);
+  const dsl=document.getElementById('nom-detalle-semana');
+  if(dsl) dsl.textContent=semLabel;
   detWrap.innerHTML=`
     ${results.map(r=>`
     <div class="nomina-row">
@@ -1128,13 +1155,13 @@ function renderNomina(){
         <div class="nomina-row-meta">$${r.tarifa}/hr · ${r.diasTrabajados} días registrados esta semana</div>
       </div>
       <div>
-        <div class="nomina-row-total">$${r.total.toLocaleString()}</div>
-        <div class="nomina-row-hrs">${r.totalHrs} hrs</div>
+        <div class="nomina-row-total">$${r.total.toFixed(2)}</div>
+        <div class="nomina-row-hrs">${Number(r.totalHrs).toFixed(2)} hrs</div>
       </div>
     </div>`).join('')}
     <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:14px;border-top:2px solid var(--border);margin-top:4px">
       <div style="font-size:12px;color:var(--muted)">${semLabel}</div>
-      <div style="text-align:right"><div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total a pagar</div><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--ink)">$${grandTotal.toLocaleString()}</div></div>
+      <div style="text-align:right"><div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total a pagar</div><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--ink)">$${grandTotal.toFixed(2)}</div></div>
     </div>`;
 }
 
@@ -1203,7 +1230,7 @@ function renderHorasLog(){
         <div class="time-log-times" id="tlt-${h.id}">
           <span>🟢 Entrada: <strong>${h.entrada||'—'}</strong></span>
           <span>🔴 Salida: <strong>${h.salida||'Pendiente'}</strong></span>
-          ${hrs>0?`<span class="time-log-hrs">${hrs.toFixed(1)} hrs · $${(hrs*tarifa).toLocaleString()}</span>`:''}
+          ${hrs>0?`<span class="time-log-hrs">${hrs.toFixed(2)} hrs · $$${(hrs*tarifa).toFixed(2)}</span>`:''}
         </div>
       </div>`;
     }).join('');
@@ -1375,17 +1402,17 @@ function registrarSalidaTeam(){
   const today=new Date().toISOString().split('T')[0];
   const now=new Date();
   const hora=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-  const confirm_=confirm(`¿Registrar tu salida a las ${hora}?`);
-  if(!confirm_)return;
-  const reg=horasRegistro.find(h=>h.miembroId===currentMember.id&&h.fecha===today);
-  if(reg){
-    reg.salida=hora;
-    saveAll();
-    renderTeamView();
-    showToast('✅ Salida registrada: '+hora);
+  if(!confirm('¿Registrar tu salida a las '+hora+'?'))return;
+  let reg=horasRegistro.find(h=>h.miembroId===currentMember.id&&h.fecha===today);
+  if(!reg){
+    // Create record with only salida (Gladys can add entrada later)
+    horasRegistro.push({id:Date.now(),miembroId:currentMember.id,miembroNombre:currentMember.nombre,fecha:today,entrada:'',salida:hora});
   } else {
-    alert('No hay entrada registrada para hoy. Comunícate con Gladys.');
+    reg.salida=hora;
   }
+  saveAll();
+  renderTeamView();
+  showToast('✅ Salida registrada: '+hora);
 }
 // ── UTILS ──
 function fmtF(s){const d=new Date(s+'T12:00:00');return d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'})}
