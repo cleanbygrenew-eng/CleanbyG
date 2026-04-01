@@ -1081,7 +1081,7 @@ function updateWeekDisplay(){
   if(sel) sel.value=currentWeekOffset;
   // Update hr-fecha range hints
   const hrf=document.getElementById('hr-fecha');
-  if(hrf){ hrf.value=inicio; }
+  if(hrf) hrf.value=inicio; // Always reset to Monday of selected week
   renderNomina();
   renderHorasLog();
 }
@@ -1143,30 +1143,31 @@ function renderNomina(){
   const semLabel=document.getElementById('nom-semana-label')?.value||'';
   const grandTotal=results.reduce((s,r)=>s+r.total,0);
   const semKey='semana-'+inicio+'-'+fin;
-  const esPagada=semanasPagadas.includes(semKey);
+  const activos2=equipo.filter(m=>m.activo);
+  const todosPagados=activos2.length>0&&activos2.every(m=>semanasPagadas.includes('miembro-'+m.id+'-semana-'+inicio+'-'+fin));
   const dsl=document.getElementById('nom-detalle-semana');
-  if(dsl) dsl.textContent=semLabel+(esPagada?' ✅ PAGADA':'');
-  const btnWrap=document.getElementById('nom-pago-btn-wrap');
-  if(btnWrap){
-    if(esPagada){
-      btnWrap.innerHTML=`<span class="badge badge-green" style="font-size:12px">✅ Semana pagada</span><button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="desmarcarPagada('${semKey}')">Desmarcar</button>`;
-    } else {
-      btnWrap.innerHTML=`<button class="btn btn-primary btn-sm" onclick="marcarPagada('${semKey}')">💰 Marcar semana como pagada</button>`;
-    }
-  }
+  if(dsl) dsl.textContent=semLabel+(todosPagados?' ✅ TODOS PAGADOS':'');
+  // Per-member payment buttons shown in row
   detWrap.innerHTML=`
-    ${results.map(r=>`
-    <div class="nomina-row">
+    ${results.map(r=>{
+      const memberKey='miembro-'+r.m.id+'-semana-'+inicio+'-'+fin;
+      const miembroPagado=semanasPagadas.includes(memberKey);
+      return `<div class="nomina-row" style="flex-wrap:wrap">
       <div class="avatar" style="background:${aC(r.m.nombre)};color:white">${r.m.nombre[0].toUpperCase()}</div>
       <div class="nomina-row-info">
-        <div class="nomina-row-name">${r.m.nombre} <span class="badge badge-gray" style="font-size:10.5px">${r.m.rol}</span></div>
-        <div class="nomina-row-meta">$${r.tarifa}/hr · ${r.diasTrabajados} días registrados</div>
+        <div class="nomina-row-name">${r.m.nombre} <span class="badge badge-gray" style="font-size:10.5px">${r.m.rol}</span>${miembroPagado?' <span class="badge badge-green" style="font-size:10.5px">✅ Pagado</span>':''}</div>
+        <div class="nomina-row-meta">$${r.tarifa}/hr · ${r.diasTrabajados} días</div>
       </div>
-      <div>
+      <div style="text-align:right">
         <div class="nomina-row-total">$${r.total.toFixed(2)}</div>
         <div class="nomina-row-hrs">${r.totalHrs} hrs</div>
+        ${miembroPagado
+          ?`<button class="btn btn-ghost btn-sm" style="margin-top:4px;font-size:11px" onclick="desmarcarPagadaMiembro('${memberKey}')">Desmarcar</button>`
+          :`<button class="btn btn-sm" style="margin-top:4px;font-size:11px;background:var(--sage);color:white" onclick="marcarPagadaMiembro('${memberKey}','${r.m.nombre}')">💰 Marcar pagado</button>`
+        }
       </div>
-    </div>`).join('')}
+    </div>`;
+    }).join('')}
     <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:14px;border-top:2px solid var(--border);margin-top:4px">
       <div style="font-size:12px;color:var(--muted)">${semLabel}</div>
       <div style="text-align:right"><div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total a pagar</div><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--ink)">$${grandTotal.toFixed(2)}</div></div>
@@ -1183,8 +1184,8 @@ function registrarEntrada(){
   // Check if week is paid
   const inicio=document.getElementById('nom-inicio')?.value||'';
   const fin=document.getElementById('nom-fin')?.value||'';
-  const semKey='semana-'+inicio+'-'+fin;
-  if(semanasPagadas.includes(semKey))return alert('Esta semana ya fue marcada como pagada. Desmárcala primero para editar.');
+  const semKey='miembro-'+mId+'-semana-'+inicio+'-'+fin;
+  if(semanasPagadas.includes(semKey))return alert('Esta semana ya fue marcada como pagada para este miembro. Desmárcala primero.');
   const m=equipo.find(x=>x.id===mId);
   const existing=horasRegistro.find(h=>h.miembroId===mId&&h.fecha===fecha);
   if(existing){
@@ -1219,18 +1220,18 @@ function renderHorasLog(){
   const inicio=document.getElementById('nom-inicio')?.value||'';
   const fin=document.getElementById('nom-fin')?.value||'';
   const sorted=[...horasRegistro]
-    .filter(h=>!inicio||!fin||(h.fecha>=inicio&&h.fecha<=fin))
+    .filter(h=>h.fecha>=inicio&&h.fecha<=fin)
     .filter(h=>h.entrada||h.salida)
     .sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.miembroNombre.localeCompare(b.miembroNombre));
   if(!sorted.length){wrap.innerHTML='<p style="color:var(--muted);font-size:13px">Sin registros aún. Empieza registrando las entradas de la semana.</p>';return;}
-  wrap.innerHTML='<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:10px">Todos los registros</div>'+
+  wrap.innerHTML=`<div style='font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:10px'>Registros de esta semana (${sorted.length})</div>`+
     sorted.map(h=>{
       const hrs=calcHrsEntradaSalida(h.entrada,h.salida);
       const m=equipo.find(x=>x.id===h.miembroId);
       const tarifa=m?.tarifa||0;
       const inicioW=document.getElementById('nom-inicio')?.value||'';
       const finW=document.getElementById('nom-fin')?.value||'';
-      const semKeyH='semana-'+inicioW+'-'+finW;
+      const semKeyH='miembro-'+Number(h.miembroId)+'-semana-'+inicioW+'-'+finW;
       const esPagadaReg=semanasPagadas.includes(semKeyH);
       return `<div class="time-log-card" id="tlc-${h.id}">
         <div class="time-log-row">
@@ -1434,21 +1435,17 @@ function registrarSalidaTeam(){
   showToast('✅ Salida registrada: '+hora);
 }
 
-function marcarPagada(semKey){
-  if(!confirm('¿Marcar esta semana como pagada? Los registros quedarán bloqueados.'))return;
-  if(!semanasPagadas.includes(semKey)) semanasPagadas.push(semKey);
-  saveAll();
-  renderNomina();
-  renderHorasLog();
-  showToast('✅ Semana marcada como pagada');
+function marcarPagadaMiembro(memberKey, nombre){
+  if(!confirm('¿Marcar a '+nombre+' como pagada esta semana?'))return;
+  if(!semanasPagadas.includes(memberKey)) semanasPagadas.push(memberKey);
+  saveAll();renderNomina();renderHorasLog();
+  showToast('✅ '+nombre+' marcada como pagada');
 }
-function desmarcarPagada(semKey){
-  if(!confirm('¿Desmarcar esta semana como pagada?'))return;
-  semanasPagadas=semanasPagadas.filter(s=>s!==semKey);
-  saveAll();
-  renderNomina();
-  renderHorasLog();
-  showToast('✅ Semana desmarcada');
+function desmarcarPagadaMiembro(memberKey){
+  if(!confirm('¿Desmarcar este pago?'))return;
+  semanasPagadas=semanasPagadas.filter(s=>s!==memberKey);
+  saveAll();renderNomina();renderHorasLog();
+  showToast('✅ Pago desmarcado');
 }
 // ── UTILS ──
 function fmtF(s){const d=new Date(s+'T12:00:00');return d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'})}
