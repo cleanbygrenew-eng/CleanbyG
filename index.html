@@ -465,7 +465,11 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
         <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Agrega aquí todo lo que Gladys puede hacer. Luego seleccionas las que aplican a cada cliente.</p>
         <div id="master-tasks-list"></div>
         <div class="add-task-row">
-          <input id="new-master-task" placeholder="Ej: Limpiar chimenea, Planchar, Lavar trastes..." onkeydown="if(event.key==='Enter')addMasterTask()">
+          <select id="new-task-seccion" style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none">
+            <option>Baños</option><option>Cocina</option><option>Desempolvado</option>
+            <option>Aspirado</option><option>Vidrios</option><option selected>General</option><option>Otros</option>
+          </select>
+          <input id="new-master-task" placeholder="Ej: Limpiar chimenea..." onkeydown="if(event.key==='Enter')addMasterTask()" style="flex:1">
           <button class="btn btn-primary" onclick="addMasterTask()">+ Agregar</button>
         </div>
       </div>
@@ -653,16 +657,18 @@ let horasLog=JSON.parse(localStorage.getItem('cbg3_horas')||'[]');
 let horasRegistro=JSON.parse(localStorage.getItem('cbg3_horarios')||'[]');
 let semanasPagadas=JSON.parse(localStorage.getItem('cbg3_semanas_pagadas')||'[]');
 let masterTasks=JSON.parse(localStorage.getItem('cbg3_tasks_v3')||JSON.stringify([
-  {id:1,t:'Barrer y trapear pisos'},
-  {id:2,t:'Aspirar alfombras y tapetes'},
-  {id:3,t:'Sacudir polvo en muebles y superficies'},
-  {id:4,t:'Limpiar ventanas por dentro'},
-  {id:5,t:'Baños: inodoro, lavabo y tina'},
-  {id:6,t:'Cocina: estufa, fregadero y mesetas'},
-  {id:7,t:'Limpiar espejos y cristales'},
-  {id:8,t:'Vaciar basureros'},
-  {id:9,t:'Limpiar microondas'},
-  {id:10,t:'Limpiar manijas e interruptores'}
+  {id:1,t:'Barrer y trapear pisos',seccion:'General'},
+  {id:2,t:'Aspirar alfombras y tapetes',seccion:'Aspirado'},
+  {id:3,t:'Sacudir polvo en muebles y superficies',seccion:'Desempolvado'},
+  {id:4,t:'Limpiar ventanas por dentro',seccion:'Vidrios'},
+  {id:5,t:'Limpiar inodoro completo',seccion:'Baños'},
+  {id:6,t:'Limpiar lavabo y grifería',seccion:'Baños'},
+  {id:7,t:'Fregar azulejos y paredes',seccion:'Baños'},
+  {id:8,t:'Limpiar estufa y campana',seccion:'Cocina'},
+  {id:9,t:'Fregar fregadero y mesetas',seccion:'Cocina'},
+  {id:10,t:'Limpiar microondas',seccion:'Cocina'},
+  {id:11,t:'Vaciar basureros',seccion:'General'},
+  {id:12,t:'Limpiar manijas e interruptores',seccion:'General'}
 ]));
 let currentMember=null;
 function saveAll(){
@@ -749,13 +755,20 @@ document.getElementById('pw-modal').addEventListener('click',e=>{if(e.target===d
 function renderMasterTasks(){
   const w=document.getElementById('master-tasks-list');
   if(!masterTasks.length){w.innerHTML='<p style="color:var(--muted);font-size:13px;padding:10px 0">Sin tareas aún</p>';return;}
-  w.innerHTML=masterTasks.map(t=>`
-    <div class="task-master-item">
-      <span class="task-master-label" id="tl-${t.id}">• ${t.t}</span>
-      <div style="display:flex;gap:4px;margin-left:auto">
-        <button class="btn btn-ghost btn-sm" onclick="startEditTask(${t.id})" style="padding:4px 8px;font-size:12px">✏️</button>
-        <button class="task-del-btn" style="opacity:1" onclick="delMasterTask(${t.id})">×</button>
-      </div>
+  const secciones={};
+  masterTasks.forEach(t=>{const sec=t.seccion||'General';if(!secciones[sec])secciones[sec]=[];secciones[sec].push(t);});
+  const iconos={'Baños':'🛁','Cocina':'🍳','Desempolvado':'🧹','Aspirado':'🌀','Vidrios':'🪟','General':'🏠','Otros':'📋'};
+  w.innerHTML=Object.entries(secciones).map(([sec,tareas])=>`
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:var(--sage-dark);font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--sage-pale)">${iconos[sec]||'📋'} ${sec}</div>
+      ${tareas.map(t=>`
+        <div class="task-master-item">
+          <span class="task-master-label" id="tl-${t.id}">• ${t.t}</span>
+          <div style="display:flex;gap:4px;margin-left:auto">
+            <button class="btn btn-ghost btn-sm" onclick="startEditTask(${t.id})" style="padding:4px 8px;font-size:12px">✏️</button>
+            <button class="task-del-btn" style="opacity:1" onclick="delMasterTask(${t.id})">×</button>
+          </div>
+        </div>`).join('')}
     </div>`).join('');
 }
 function startEditTask(id){
@@ -784,8 +797,10 @@ function saveEditTask(id){
 function addMasterTask(){
   const inp=document.getElementById('new-master-task'),t=inp.value.trim();
   if(!t)return;
+  const secSel=document.getElementById('new-task-seccion');
+  const sec=secSel?secSel.value:'General';
   const mx=masterTasks.length?Math.max(...masterTasks.map(x=>x.id)):0;
-  masterTasks.push({id:mx+1,t});
+  masterTasks.push({id:mx+1,t,seccion:sec});
   inp.value='';saveAll();renderMasterTasks();
 }
 function delMasterTask(id){masterTasks=masterTasks.filter(t=>t.id!==id);saveAll();renderMasterTasks()}
@@ -794,10 +809,24 @@ function delMasterTask(id){masterTasks=masterTasks.filter(t=>t.id!==id);saveAll(
 function fillClienteModal(){
   const w=document.getElementById('client-task-selector');
   if(!masterTasks.length){w.innerHTML='<p style="color:var(--muted);font-size:13px">Primero agrega tareas en la sección "Tareas"</p>';return;}
-  w.innerHTML=masterTasks.map(t=>`
-    <div class="task-check-item" id="ctask-${t.id}" onclick="toggleTCI('ctask-${t.id}')">
-      <div class="tci-box"></div>
-      <span class="tci-label">${t.t}</span>
+  // Group by section
+  const secciones={};
+  masterTasks.forEach(t=>{
+    const sec=t.seccion||'General';
+    if(!secciones[sec]) secciones[sec]=[];
+    secciones[sec].push(t);
+  });
+  const iconos={'Baños':'🛁','Cocina':'🍳','Desempolvado':'🧹','Aspirado':'🌀','Vidrios':'🪟','General':'🏠','Otros':'📋'};
+  w.innerHTML=Object.entries(secciones).map(([sec,tareas])=>`
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+        <span>${iconos[sec]||'📋'}</span> ${sec}
+      </div>
+      ${tareas.map(t=>`
+        <div class="task-check-item" id="ctask-${t.id}" onclick="toggleTCI('ctask-${t.id}')">
+          <div class="tci-box"></div>
+          <span class="tci-label">${t.t}</span>
+        </div>`).join('')}
     </div>`).join('');
 }
 function toggleTCI(id){const el=document.getElementById(id);if(!el)return;el.classList.toggle('selected');el.querySelector('.tci-box').textContent=el.classList.contains('selected')?'✓':''}
@@ -805,22 +834,69 @@ function getSelectedTasks(prefix){
   return masterTasks.filter(t=>document.getElementById(prefix+t.id)?.classList.contains('selected')).map(t=>({id:t.id,t:t.t}));
 }
 function saveCliente(){const n=document.getElementById('cn').value.trim();if(!n)return alert('Ingresa un nombre');clientes.push({id:Date.now(),nombre:n,tel:document.getElementById('ct').value,dir:document.getElementById('cd').value,freq:document.getElementById('cf').value,precio:document.getElementById('cp').value,notas:document.getElementById('cno').value,procedimientos:document.getElementById('cpro').value,taskIds:getSelectedTasks('ctask-'),activo:true});saveAll();closeModal('m-cliente');['cn','ct','cd','cp','cno','cpro'].forEach(i=>document.getElementById(i).value='');renderClientes()}
-function renderClientes(){const tb=document.getElementById('tb-clientes');if(!clientes.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="e-icon">👤</div><p>Sin clientes aún</p></div></td></tr>';return}tb.innerHTML=clientes.map(c=>`<tr><td><div class="name-cell"><div class="avatar" style="background:${aC(c.nombre)};color:white">${c.nombre[0].toUpperCase()}</div>${c.nombre}</div></td><td>${c.tel||'—'}</td><td style="font-size:12.5px;color:var(--muted);max-width:140px">${c.dir||'—'}</td><td><span class="badge badge-green">${c.freq}</span></td><td style="font-weight:600">${c.precio?'$'+Number(c.precio).toLocaleString():'—'}</td><td><span class="badge badge-blue" style="cursor:pointer" onclick="editClienteTareas(${c.id})">${(c.taskIds||[]).length} tareas ✏️</span></td><td><button class="btn btn-danger btn-sm" onclick="delCliente(${c.id})">×</button></td></tr>`).join('')}
+function renderClientes(){const tb=document.getElementById('tb-clientes');if(!clientes.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="e-icon">👤</div><p>Sin clientes aún</p></div></td></tr>';return}const sorted=[...clientes].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));tb.innerHTML=sorted.map(c=>`<tr><td><div class="name-cell"><div class="avatar" style="background:${aC(c.nombre)};color:white">${c.nombre[0].toUpperCase()}</div>${c.nombre}</div></td><td>${c.tel||'—'}</td><td style="font-size:12.5px;color:var(--muted);max-width:140px">${c.dir||'—'}</td><td><span class="badge badge-green">${c.freq}</span></td><td style="font-weight:600">${c.precio?'$'+Number(c.precio).toLocaleString():'—'}</td><td><span class="badge badge-blue" style="cursor:pointer" onclick="editClienteTareas(${c.id})">${(c.taskIds||[]).length} tareas ✏️</span></td><td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="editCliente(${c.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="delCliente(${c.id})">×</button></td></tr>`).join('')}
 function editClienteTareas(id){
   const c=clientes.find(x=>x.id===id);if(!c)return;
   document.getElementById('edit-cliente-id').value=id;
   const w=document.getElementById('edit-task-selector');
   const taskIds=c.taskIds||[];
-  w.innerHTML=masterTasks.map(t=>{
-    const sel=taskIds.some(x=>(x.id||x.tId)===t.id)||taskIds.includes(t.id);
-    return `<div class="task-check-item ${sel?'selected':''}" id="etask-${t.id}" onclick="toggleTCI('etask-${t.id}')"><div class="tci-box">${sel?'✓':''}</div><span class="tci-label">${t.t}</span></div>`;
-  }).join('');
+  const secciones={};
+  masterTasks.forEach(function(t){var sec=t.seccion||'General';if(!secciones[sec])secciones[sec]=[];secciones[sec].push(t);});
+  const iconos={'Baños':'🛁','Cocina':'🍳','Desempolvado':'🧹','Aspirado':'🌀','Vidrios':'🪟','General':'🏠','Otros':'📋'};
+  var html='';
+  Object.entries(secciones).forEach(function(entry){
+    var sec=entry[0], tareas=entry[1];
+    html+='<div style="margin-bottom:12px">';
+    html+='<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);font-weight:600;margin-bottom:6px">'+(iconos[sec]||'📋')+' '+sec+'</div>';
+    tareas.forEach(function(t){
+      var sel=taskIds.some(function(x){return (x.id||x.tId)===t.id;});
+      html+='<div class="task-check-item'+(sel?' selected':'')+'" id="etask-'+t.id+'" data-tid="'+t.id+'" onclick="toggleETI(this)">';
+      html+='<div class="tci-box">'+(sel?'✓':'')+'</div>';
+      html+='<span class="tci-label">'+t.t+'</span></div>';
+    });
+    html+='</div>';
+  });
+  w.innerHTML=html;
   document.getElementById('m-editar-cliente').classList.add('open');
+}
+
+function toggleETI(el){
+  el.classList.toggle('selected');
+  el.querySelector('.tci-box').textContent=el.classList.contains('selected')?'✓':'';
 }
 function saveClienteTareas(){
   const id=parseInt(document.getElementById('edit-cliente-id').value),c=clientes.find(x=>x.id===id);
-  if(c) c.taskIds=masterTasks.filter(t=>document.getElementById('etask-'+t.id)?.classList.contains('selected')).map(t=>({id:t.id,t:t.t}));
+  if(c){
+    c.taskIds=masterTasks.filter(function(t){
+      var el=document.getElementById('etask-'+t.id);
+      return el&&el.classList.contains('selected');
+    }).map(function(t){return {id:t.id,t:t.t};});
+  }
   saveAll();closeModal('m-editar-cliente');renderClientes();
+}
+
+function editCliente(id){
+  const c=clientes.find(x=>x.id===id);
+  if(!c)return;
+  document.getElementById('cn').value=c.nombre||'';
+  document.getElementById('ct').value=c.tel||'';
+  document.getElementById('cd').value=c.dir||'';
+  document.getElementById('cf').value=c.freq||'Semanal';
+  document.getElementById('cp').value=c.precio||'';
+  document.getElementById('cno').value=c.notas||'';
+  if(document.getElementById('cpro')) document.getElementById('cpro').value=c.procedimientos||'';
+  // Store editing id
+  document.getElementById('m-cliente').dataset.editId=id;
+  document.getElementById('m-cliente').querySelector('h3').textContent='Editar cliente';
+  fillClienteModal();
+  // Pre-select tasks
+  setTimeout(()=>{
+    (c.taskIds||[]).forEach(tk=>{
+      const el=document.getElementById('ctask-'+tk.id);
+      if(el&&!el.classList.contains('selected')){el.classList.add('selected');el.querySelector('.tci-box').textContent='✓';}
+    });
+  },50);
+  openModal('m-cliente');
 }
 function delCliente(id){if(confirm('¿Eliminar cliente?')){clientes=clientes.filter(c=>c.id!==id);saveAll();renderClientes();renderDashboard()}}
 
