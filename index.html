@@ -731,10 +731,15 @@ async function initAdmin(){
   }
   if(window.startRealtimeSync){
     window.startRealtimeSync(function(data){
-      clientes=data.clientes||[];citas=data.citas||[];pagos=data.pagos||[];
-      equipo=data.equipo||[];ausencias=data.ausencias||[];
-      masterTasks=(data.masterTasks&&data.masterTasks.length)?data.masterTasks:masterTasks;
-      horasLog=data.horasLog||[];
+      if(data.clientes&&data.clientes.length) clientes=data.clientes;
+      if(data.citas) citas=data.citas;
+      if(data.pagos) pagos=data.pagos;
+      if(data.equipo&&data.equipo.length) equipo=data.equipo;
+      if(data.ausencias) ausencias=data.ausencias;
+      if(data.masterTasks&&data.masterTasks.length) masterTasks=data.masterTasks;
+      if(data.horasLog) horasLog=data.horasLog;
+      if(data.horasRegistro&&data.horasRegistro.length) horasRegistro=data.horasRegistro.map(h=>({...h,miembroId:Number(h.miembroId)}));
+      if(data.semanasPagadas) semanasPagadas=data.semanasPagadas;
       const pg=document.querySelector('.page.active');
       if(pg){const id=pg.id.replace('page-','');const fns={dashboard:renderDashboard,clientes:renderClientes,agenda:renderAgenda,tareas:renderMasterTasks,ingresos:renderIngresos,equipo:renderEquipo,ausencias:renderAusencias};if(fns[id])fns[id]();}
     });
@@ -1036,9 +1041,13 @@ async function initTeam(){
   // Start realtime sync
   if(window.startRealtimeSync){
     window.startRealtimeSync(function(data){
-      clientes=data.clientes||[];citas=data.citas||[];
-      equipo=data.equipo||[];masterTasks=(data.masterTasks&&data.masterTasks.length)?data.masterTasks:masterTasks;
-      ausencias=data.ausencias||[];horasRegistro=data.horasRegistro||[];
+      if(data.clientes&&data.clientes.length) clientes=data.clientes;
+      if(data.citas) citas=data.citas;
+      if(data.equipo&&data.equipo.length) equipo=data.equipo;
+      if(data.masterTasks&&data.masterTasks.length) masterTasks=data.masterTasks;
+      if(data.ausencias) ausencias=data.ausencias;
+      if(data.horasRegistro&&data.horasRegistro.length) horasRegistro=data.horasRegistro.map(h=>({...h,miembroId:Number(h.miembroId)}));
+      if(data.semanasPagadas) semanasPagadas=data.semanasPagadas;
       if(currentMember) currentMember=equipo.find(m=>m.id===currentMember.id)||currentMember;
       renderTeamView();
     });
