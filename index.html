@@ -685,19 +685,19 @@ function saveAll(){
   localStorage.setItem('cbg3_horarios',JSON.stringify(horasRegistro));
   localStorage.setItem('cbg3_semanas_pagadas',JSON.stringify(semanasPagadas));
   if(window.saveToFirebase){
-    // Always send ALL data to avoid overwriting with empty arrays
-    window.saveToFirebase({
-      clientes: clientes||[],
-      citas: citas||[],
-      pagos: pagos||[],
-      equipo: equipo||[],
-      ausencias: ausencias||[],
-      masterTasks: masterTasks||[],
-      horasLog: horasLog||[],
-      horasRegistro: horasRegistro||[],
-      semanasPagadas: semanasPagadas||[],
-      updated: new Date().toISOString()
-    });
+    // Build firebase data object - NEVER include empty arrays
+    // This prevents accidentally wiping data in Firebase
+    var fbData = {updated: new Date().toISOString()};
+    if(clientes.length>0) fbData.clientes=clientes;
+    if(citas.length>0) fbData.citas=citas;
+    if(pagos.length>0) fbData.pagos=pagos;
+    if(equipo.length>0) fbData.equipo=equipo;
+    if(ausencias.length>0) fbData.ausencias=ausencias;
+    if(masterTasks.length>0) fbData.masterTasks=masterTasks;
+    if(horasLog.length>0) fbData.horasLog=horasLog;
+    if(horasRegistro.length>0) fbData.horasRegistro=horasRegistro;
+    if(semanasPagadas.length>0) fbData.semanasPagadas=semanasPagadas;
+    window.saveToFirebase(fbData);
   }
 }
 
