@@ -340,7 +340,7 @@ tbody tr:hover td{background:rgba(248,245,240,0.7)}
     if(saving) return;
     saving = true;
     try {
-      await setDoc(doc(db, 'datos', 'principal'), data);
+      await setDoc(doc(db, 'datos', 'principal'), data, {merge: true});
     } catch(e) {
       console.error('Error guardando en Firebase:', e);
     }
@@ -685,10 +685,18 @@ function saveAll(){
   localStorage.setItem('cbg3_horarios',JSON.stringify(horasRegistro));
   localStorage.setItem('cbg3_semanas_pagadas',JSON.stringify(semanasPagadas));
   if(window.saveToFirebase){
+    // Always send ALL data to avoid overwriting with empty arrays
     window.saveToFirebase({
-      clientes,citas,pagos,equipo,ausencias,
-      masterTasks,horasLog,horasRegistro,semanasPagadas,
-      updated:new Date().toISOString()
+      clientes: clientes||[],
+      citas: citas||[],
+      pagos: pagos||[],
+      equipo: equipo||[],
+      ausencias: ausencias||[],
+      masterTasks: masterTasks||[],
+      horasLog: horasLog||[],
+      horasRegistro: horasRegistro||[],
+      semanasPagadas: semanasPagadas||[],
+      updated: new Date().toISOString()
     });
   }
 }
