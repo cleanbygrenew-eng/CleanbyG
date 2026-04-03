@@ -1075,12 +1075,21 @@ function renderTeamView(){
   const cont=document.getElementById('team-content');
   if(!cont)return;
   const today=new Date().toISOString().split('T')[0];
-  const citasHoy=citas.filter(c=>c.fecha===today).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
-  const misCitas=citasHoy.filter(c=>{
+  // Show next 7 days including today
+  const diasMostrar=[];
+  for(var di=0;di<7;di++){
+    var d=new Date();d.setDate(d.getDate()+di);
+    diasMostrar.push(d.toISOString().split('T')[0]);
+  }
+  // Get all my citas in next 7 days
+  const misCitasTodas=citas.filter(c=>{
+    if(!diasMostrar.includes(c.fecha))return false;
     const asgn=c.assignments||{};
     const enMiembros=(c.miembrosAsignados||[]).some(m=>m.id===currentMember.id);
     return Object.values(asgn).includes(currentMember.id)||enMiembros;
-  });
+  }).sort((a,b)=>a.fecha.localeCompare(b.fecha)||(a.hora||'').localeCompare(b.hora||''));
+  const citasHoy=misCitasTodas.filter(c=>c.fecha===today);
+  const misCitas=citasHoy;
   
   // Calculate earnings this week
   const today2=new Date();
@@ -1123,7 +1132,27 @@ function renderTeamView(){
   
   // Tasks first, then earnings
   const extraHtml = earningsHtml + exitHtml;
-  cont.innerHTML=`<div class="section-lbl">Mis tareas de hoy — ${misCitas.length} casa${misCitas.length>1?'s':''}</div>`+misCitas.map(c=>{
+  // Build upcoming days section
+  var proximosDias='';
+  var citasFuturas=misCitasTodas.filter(c=>c.fecha>today);
+  if(citasFuturas.length){
+    var byDay={};
+    citasFuturas.forEach(function(c){if(!byDay[c.fecha])byDay[c.fecha]=[];byDay[c.fecha].push(c);});
+    proximosDias='<div style="margin-top:16px"><div class="section-lbl">📅 Próximos días</div>'+
+      Object.entries(byDay).map(function(entry){
+        var fecha=entry[0],dayCitas=entry[1];
+        return '<div style="background:white;border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:8px">'+
+          '<div style="font-size:12px;font-weight:600;color:var(--sage);margin-bottom:6px">'+fmtF(fecha)+'</div>'+
+          dayCitas.map(function(c){
+            return '<div style="font-size:13px;color:var(--ink);padding:3px 0;border-bottom:1px solid var(--border)">'+
+              '🏠 <strong>'+c.cliNombre+'</strong>'+(c.hora?' · '+c.hora:'')+'</div>';
+          }).join('')+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }
+
+  cont.innerHTML=`<div class="section-lbl">Mis casas de hoy — ${misCitas.length} casa${misCitas.length>1?'s':''}</div>`+misCitas.map(c=>{
     const asgn=c.assignments||{},tasksDone=c.tasksDone||{},done=c.estado==='Completada';
     const misTareas=[];
     (c.taskIds||[]).forEach(tk=>{
@@ -1140,6 +1169,7 @@ function renderTeamView(){
       ${c.dir?`<div class="tc-meta">📍 ${c.dir}</div>`:''}
       ${companions.length?`<div class="tc-meta" style="color:var(--sage);font-weight:500">👥 Van contigo: ${companions.map(m=>m.nombre+(m.horaLlegada?' ('+m.horaLlegada+')':'')).join(', ')}</div>`:''}
       ${c.notas?`<div class='tc-meta'>📝 ${c.notas}</div>`:''}
+      ${(()=>{var cli=clientes.find(x=>x.id===c.cliId);return cli&&cli.procedimientos?`<div style='background:var(--cream);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12.5px;line-height:1.6'><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600;margin-bottom:4px'>📋 Procedimientos</div>${cli.procedimientos}</div>`:''})()}
       ${c.procedimientos?`<div style='background:var(--cream);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12.5px;color:var(--ink);line-height:1.6'><strong style='font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)'>Procedimientos</strong><br>${c.procedimientos}</div>`:''}
       <div class="my-tasks-section"><div class="my-tasks-title">Mis tareas en esta casa</div>${misTareas.length?misTareas.map(t=>`<div class="t-task-item" onclick="toggleTeamTask(${c.id},'${t.key}')"><div class="t-task-box ${tasksDone[t.key]?'done':''}">${tasksDone[t.key]?'✓':''}</div><span class="t-task-label ${tasksDone[t.key]?'done':''}">${t.texto}</span></div>`).join(''):'<p style="font-size:13px;color:var(--muted)">Sin tareas específicas asignadas</p>'}</div><button class="${done?'complete-btn done-btn':'complete-btn'}" ${done?'disabled':''} onclick="markDone(${c.id})">${done?'✅ Completada':'✓ Marcar como lista'}</button></div>`;
   }).join('')+extraHtml;
