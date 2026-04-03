@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<!-- CleanbyG v3.2 - fix semanas lunes -->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <script>
+    // Force reload if cached version is old
+    var APP_VERSION = '20260402';
+    var stored = localStorage.getItem('cbg_version');
+    if(stored && stored !== APP_VERSION) {
+      localStorage.setItem('cbg_version', APP_VERSION);
+      window.location.reload(true);
+    } else {
+      localStorage.setItem('cbg_version', APP_VERSION);
+    }
+  </script>
+<title>CleanbyG</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#1A1A1A;--cream:#F8F5F0;--cream2:#F0EBE3;--sage:#5C8C61;--sage-light:#A3C4A8;--sage-pale:#E8F2E9;
+  --terra:#C4714A;--terra-pale:#FAF0EB;--gold:#C9A84C;--gold-pale:#FDF6E3;--blue:#4A7CB5;--blue-pale:#EBF1FA;
+  --white:#FFFFFF;--border:#E0D8CF;--muted:#9A9188;
+  --shadow-sm:0 2px 12px rgba(26,26,26,0.07);--shadow:0 6px 28px rgba(26,26,26,0.10);--shadow-lg:0 16px 56px rgba(26,26,26,0.15);--r:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex}
+
+/* LOGIN */
+#screen-login{flex-direction:column;align-items:center;justify-content:center;background:var(--ink);padding:24px;position:relative;overflow:hidden}
+#screen-login::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(92,140,97,0.25) 0%,transparent 70%);top:-100px;right:-100px}
+#screen-login::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(196,113,74,0.15) 0%,transparent 70%);bottom:-80px;left:-80px}
+.login-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:24px;padding:48px 40px;width:100%;max-width:400px;backdrop-filter:blur(20px);z-index:1;animation:fadeUp 0.5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{text-align:center;margin-bottom:36px}
+.login-logo h1{font-family:'Fraunces',serif;font-size:36px;color:var(--white);letter-spacing:-1px}
+.login-logo h1 span{color:var(--sage-light)}
+.login-logo p{color:rgba(255,255,255,0.4);font-size:13px;margin-top:6px;letter-spacing:0.5px;text-transform:uppercase}
+.login-options{display:flex;flex-direction:column;gap:12px}
+.login-btn{display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;transition:all 0.2s;text-align:left;width:100%}
+.login-btn:hover{background:rgba(255,255,255,0.11);border-color:rgba(255,255,255,0.22);transform:translateY(-1px)}
+.login-btn .btn-icon{font-size:22px;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.login-btn.admin .btn-icon{background:rgba(92,140,97,0.25)}
+.login-btn.team .btn-icon{background:rgba(196,113,74,0.25)}
+.login-btn .btn-text small{display:block;font-size:11px;color:rgba(255,255,255,0.4);font-weight:400;margin-top:2px}
+.login-divider{text-align:center;color:rgba(255,255,255,0.2);font-size:12px;margin:4px 0}
+
+/* PW MODAL */
+.pw-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:999;opacity:0;pointer-events:none;transition:opacity 0.2s;padding:20px}
+.pw-overlay.open{opacity:1;pointer-events:all}
+.pw-box{background:var(--ink);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:32px;width:100%;max-width:340px;transform:translateY(12px);transition:transform 0.2s}
+.pw-overlay.open .pw-box{transform:translateY(0)}
+.pw-box h3{font-family:'Fraunces',serif;color:white;font-size:20px;margin-bottom:6px}
+.pw-box p{color:rgba(255,255,255,0.4);font-size:13px;margin-bottom:20px}
+.pw-box input{width:100%;padding:12px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:white;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;margin-bottom:12px}
+.pw-box input:focus{border-color:var(--sage-light)}
+.pw-box input::placeholder{color:rgba(255,255,255,0.25)}
+.pw-error{color:#ff7b7b;font-size:12px;margin-bottom:10px;display:none}
+.pw-actions{display:flex;gap:8px}
+.pw-actions button{flex:1;padding:11px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;transition:all 0.15s}
+.pw-cancel{background:rgba(255,255,255,0.08);color:white}
+.pw-confirm{background:var(--sage);color:white}
+
+/* MEMBER SELECT */
+#member-select-screen{flex-direction:column;align-items:center;justify-content:center;background:var(--ink);padding:24px;position:relative;overflow:hidden}
+#member-select-screen::before{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(196,113,74,0.2) 0%,transparent 70%);top:-80px;right:-80px}
+.member-select-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:24px;padding:40px 32px;width:100%;max-width:420px;z-index:1;animation:fadeUp 0.4s ease}
+.member-select-card h2{font-family:'Fraunces',serif;font-size:24px;color:white;margin-bottom:6px}
+.member-select-card p{color:rgba(255,255,255,0.4);font-size:13px;margin-bottom:24px}
+.member-list{display:flex;flex-direction:column;gap:10px;max-height:340px;overflow-y:auto}
+.member-btn{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;transition:all 0.18s;text-align:left;width:100%}
+.member-btn:hover{background:rgba(255,255,255,0.12);transform:translateX(4px)}
+.member-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:white;flex-shrink:0}
+.member-btn-info small{display:block;font-size:11px;color:rgba(255,255,255,0.35);margin-top:1px}
+
+/* ADMIN LAYOUT */
+#screen-admin{flex-direction:row}
+.sidebar{width:220px;min-height:100vh;background:var(--ink);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:50;transition:transform 0.3s}
+.sidebar-logo{padding:28px 20px 22px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.sidebar-logo h1{font-family:'Fraunces',serif;font-size:20px;color:white}
+.sidebar-logo h1 span{color:var(--sage-light)}
+.sidebar-logo p{font-size:11px;color:rgba(255,255,255,0.3);margin-top:3px;text-transform:uppercase;letter-spacing:0.6px}
+.sidebar-nav{padding:16px 10px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;color:rgba(255,255,255,0.45);font-size:13.5px;font-weight:500;transition:all 0.18s;margin-bottom:2px;position:relative}
+.nav-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.8)}
+.nav-item.active{background:var(--sage);color:white}
+.nav-item .ni{font-size:16px;width:22px;text-align:center}
+.nav-badge{position:absolute;right:10px;background:var(--terra);color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
+.sidebar-footer{padding:16px 12px;border-top:1px solid rgba(255,255,255,0.07)}
+.logout-btn{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.3);font-size:13px;cursor:pointer;padding:8px;border-radius:8px;transition:all 0.15s}
+.logout-btn:hover{color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.05)}
+.admin-main{margin-left:220px;flex:1;padding:36px 36px 60px;min-height:100vh;max-width:calc(100vw - 220px)}
+.menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:200;background:var(--ink);border:none;border-radius:10px;padding:10px 12px;cursor:pointer;color:white;font-size:18px}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:49}
+
+/* PAGES */
+.page{display:none;animation:fadeUp 0.22s ease}
+.page.active{display:block}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.page-header h2{font-family:'Fraunces',serif;font-size:28px;font-weight:600}
+.page-header p{color:var(--muted);font-size:13px;margin-top:3px}
+
+/* BUTTONS */
+.btn{padding:10px 18px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;transition:all 0.17s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--sage);color:white}
+.btn-primary:hover{background:#4a7a4f;transform:translateY(-1px);box-shadow:0 4px 14px rgba(92,140,97,0.35)}
+.btn-ghost{background:var(--white);color:var(--ink);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--cream2)}
+.btn-danger{background:#E07070;color:white}
+.btn-danger:hover{background:#c95e5e}
+.btn-gold{background:var(--gold);color:white}
+.btn-sm{padding:6px 13px;font-size:12.5px}
+
+/* CARDS */
+.card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);padding:22px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat-card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);padding:18px 20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.stat-card.c1::after{background:var(--sage)}.stat-card.c2::after{background:var(--terra)}.stat-card.c3::after{background:var(--gold)}.stat-card.c4::after{background:var(--blue)}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:6px}
+.stat-val{font-family:'Fraunces',serif;font-size:30px;font-weight:600}
+.stat-sub{font-size:11.5px;color:var(--sage);margin-top:3px;font-weight:500}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);padding:0 14px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:13px 14px;border-bottom:1px solid rgba(224,216,207,0.5);font-size:13.5px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(248,245,240,0.7)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:500;white-space:nowrap}
+.badge-green{background:var(--sage-pale);color:#2D6B33}.badge-orange{background:var(--terra-pale);color:#A5502A}.badge-gray{background:#F0EEEC;color:var(--muted)}.badge-blue{background:var(--blue-pale);color:#2A5090}.badge-gold{background:var(--gold-pale);color:#7A5A10}
+
+/* AVATAR */
+.avatar{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.name-cell{display:flex;align-items:center;gap:9px;font-weight:500}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:12.5px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13.5px;background:var(--cream);color:var(--ink);outline:none;transition:border 0.15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--sage);background:white}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,26,26,0.5);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity 0.2s;padding:20px}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:white;border-radius:20px;padding:28px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;transform:translateY(14px);transition:transform 0.2s;box-shadow:var(--shadow-lg)}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-header h3{font-family:'Fraunces',serif;font-size:20px}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px}
+.modal-close:hover{background:var(--cream2)}
+.modal-footer{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.modal-sep{font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);font-weight:600;margin:18px 0 10px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* TASK SELECTOR */
+.task-check-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;padding:2px}
+.task-check-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s}
+.task-check-item:hover{background:var(--cream)}
+.task-check-item.selected{background:var(--sage-pale);border-color:var(--sage-light)}
+.task-check-item .tci-box{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all 0.15s}
+.task-check-item.selected .tci-box{background:var(--sage);border-color:var(--sage);color:white}
+.task-check-item .tci-label{font-size:13.5px;flex:1}
+
+/* ASSIGN ROWS */
+.assign-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.assign-row:last-child{border-bottom:none}
+.assign-task-label{flex:1;font-size:13.5px;min-width:120px}
+.assign-select{padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none}
+.assign-select:focus{border-color:var(--sage)}
+
+/* AGENDA */
+.agenda-day{margin-bottom:20px}
+.agenda-day-label{font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.agenda-event{background:white;border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:7px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-sm);flex-wrap:wrap}
+.event-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.event-time{font-size:12.5px;font-weight:600;color:var(--sage);min-width:50px}
+.event-info{flex:1;min-width:140px}
+.event-info strong{font-size:13.5px;display:block}
+.event-info span{font-size:12px;color:var(--muted)}
+.event-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+/* INCOME */
+.income-hero{background:linear-gradient(135deg,var(--ink) 0%,#2E3B2E 100%);border-radius:var(--r);padding:26px 28px;color:white;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.income-hero h3{font-size:12px;opacity:0.5;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;font-weight:400}
+.income-hero .amount{font-family:'Fraunces',serif;font-size:38px;font-weight:600}
+.income-hero .sub{font-size:12px;opacity:0.4;margin-top:4px}
+.income-hero .icon{font-size:48px;opacity:0.15}
+.progress-bar{height:5px;background:var(--border);border-radius:3px;margin-top:6px}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.4s}
+
+/* AUSENCIAS ADMIN */
+.ausencia-card{background:white;border:1px solid var(--border);border-left:4px solid var(--terra);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm)}
+.ausencia-info{flex:1}
+.ausencia-info strong{font-size:14px;display:block}
+.ausencia-info span{font-size:12px;color:var(--muted)}
+
+/* ALERT */
+.alert-banner{background:var(--terra-pale);border:1px solid rgba(196,113,74,0.3);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.alert-banner .alert-icon{font-size:20px}
+.alert-banner .alert-text{font-size:13.5px;color:var(--terra);font-weight:500;flex:1}
+
+/* TEAM CARDS */
+.team-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.team-member-card{background:white;border-radius:var(--r);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow-sm);transition:transform 0.18s,box-shadow 0.18s}
+.team-member-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.tm-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.tm-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:white;flex-shrink:0}
+.tm-name{font-weight:600;font-size:14.5px}
+.tm-role{font-size:12px;color:var(--muted);margin-top:2px}
+.tm-info{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.tm-info span{display:flex;align-items:center;gap:6px}
+.tm-actions{display:flex;gap:7px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap}
+
+/* TASK MASTER */
+.task-master-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.task-master-item:last-child{border-bottom:none}
+.task-master-label{flex:1;font-size:13.5px}
+.task-del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;opacity:0;transition:opacity 0.15s}
+.task-master-item:hover .task-del-btn{opacity:1}
+.add-task-row{display:flex;gap:8px;margin-top:12px}
+.add-task-row input{flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none}
+.add-task-row input:focus{border-color:var(--sage);background:white}
+.nomina-card{background:white;border-radius:var(--r);border:1px solid var(--border);padding:18px 20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.nomina-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--sage)}
+.nomina-name{font-weight:600;font-size:14px;margin-bottom:4px}
+.nomina-amount{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--sage)}
+.nomina-detail{font-size:12px;color:var(--muted);margin-top:3px}
+.nomina-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}
+.nomina-row:last-child{border-bottom:none}
+.nomina-row-info{flex:1}
+.nomina-row-name{font-weight:600;font-size:14px}
+.nomina-row-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.nomina-row-total{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--sage);text-align:right}
+.nomina-row-hrs{font-size:11px;color:var(--muted);text-align:right}
+.hrs-log-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.hrs-log-item:last-child{border-bottom:none}
+
+.days-selector{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.day-btn{padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--cream);color:var(--muted);font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s}
+.day-btn:hover{border-color:var(--sage);color:var(--sage)}
+.day-btn.active{background:var(--sage);border-color:var(--sage);color:white}
+
+/* EMPTY */
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.empty .e-icon{font-size:38px;margin-bottom:10px}
+.empty p{font-size:13.5px}
+
+/* DASH */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+/* ═══ TEAM VIEW ═══ */
+#screen-team{flex-direction:column;background:var(--cream)}
+.team-portal{flex:1;max-width:600px;width:100%;margin:0 auto;padding:28px 20px 80px}
+.team-top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.team-top-bar h1{font-family:'Fraunces',serif;font-size:20px}
+.team-top-bar h1 span{color:var(--sage)}
+.team-who{font-size:12px;color:var(--muted);margin-top:2px}
+.date-banner{background:var(--ink);color:white;border-radius:var(--r);padding:18px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.date-banner .dl{font-size:11px;opacity:0.45;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px}
+.date-banner .dv{font-family:'Fraunces',serif;font-size:20px;font-weight:600}
+.date-banner .di{font-size:30px;opacity:0.4}
+.ausencia-form-card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:18px;box-shadow:var(--shadow-sm)}
+.ausencia-form-card h3{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.aus-row{display:flex;flex-direction:column;gap:8px}
+.aus-row input,.aus-row textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none;width:100%}
+.aus-row input:focus,.aus-row textarea:focus{border-color:var(--sage);background:white}
+.section-lbl{font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);font-weight:600;margin:20px 0 10px}
+.team-cita-card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow-sm);border-left:4px solid var(--sage)}
+.team-cita-card.done-card{border-left-color:var(--muted);opacity:0.65}
+.tc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px}
+.tc-client{font-weight:700;font-size:16px}
+.tc-time{font-size:12px;font-weight:600;color:var(--sage);background:var(--sage-pale);padding:3px 9px;border-radius:20px;white-space:nowrap}
+.tc-meta{font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.my-tasks-section{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+.my-tasks-title{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.t-task-item{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px dashed rgba(224,216,207,0.7);cursor:pointer}
+.t-task-item:last-child{border-bottom:none}
+.t-task-box{width:20px;height:20px;border:2px solid var(--border);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.t-task-box.done{background:var(--sage);border-color:var(--sage);color:white;font-size:11px}
+.t-task-label{font-size:13.5px;transition:all 0.15s}
+.t-task-label.done{text-decoration:line-through;color:var(--muted)}
+.complete-btn{width:100%;padding:12px;border-radius:10px;background:var(--sage);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:14px;transition:all 0.18s;display:flex;align-items:center;justify-content:center;gap:8px}
+.complete-btn:hover{background:#4a7a4f}
+.complete-btn.done-btn{background:var(--muted);cursor:default}
+.no-tasks{text-align:center;padding:48px 20px;color:var(--muted);background:white;border-radius:var(--r);border:1px solid var(--border)}
+.no-tasks .icon{font-size:40px;margin-bottom:12px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .menu-toggle{display:flex}.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.sidebar-overlay.open{display:block}
+  .admin-main{margin-left:0;padding:20px 16px 60px;max-width:100vw}
+  .stats-grid{grid-template-columns:1fr 1fr}.dash-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.page-header{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr;gap:10px}.stat-val{font-size:24px}.login-card{padding:32px 24px}}
+
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--ink);color:white;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:500;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+.task-section{background:var(--white);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.task-section-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--cream2);border-bottom:1px solid var(--border)}
+.task-section-title{font-weight:600;font-size:14px;flex:1}
+.task-section-body{padding:4px 16px 12px}
+
+.earnings-banner{background:linear-gradient(135deg,#2E3B2E 0%,var(--sage) 100%);border-radius:var(--r);padding:18px 22px;margin-bottom:16px;color:white}
+.earnings-banner .el{font-size:11px;opacity:0.5;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
+.earnings-banner .ev{font-family:'Fraunces',serif;font-size:28px;font-weight:600}
+.earnings-banner .es{font-size:12px;opacity:0.5;margin-top:3px}
+.time-log-card{background:white;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow-sm)}
+.time-log-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.time-log-date{font-size:13px;font-weight:600}
+.time-log-times{display:flex;gap:16px;font-size:12.5px;color:var(--muted)}
+.time-log-hrs{font-size:13px;font-weight:600;color:var(--sage)}
+.register-exit-btn{width:100%;padding:13px;border-radius:10px;background:var(--terra);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:12px;transition:all 0.18s;display:flex;align-items:center;justify-content:center;gap:8px}
+.register-exit-btn:hover{background:#a85e39}
+.register-exit-btn.done{background:var(--muted);cursor:default}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAYprjRTiF7C6NXOol3UU6-TOyVHTAz9nA",
+    authDomain: "cleanbyg.firebaseapp.com",
+    projectId: "cleanbyg",
+    storageBucket: "cleanbyg.firebasestorage.app",
+    messagingSenderId: "347202762240",
+    appId: "1:347202762240:web:c2aedff4265aa4e1178ae5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  let saving = false;
+  let unsubscribe = null;
+
+  window.saveToFirebase = async function(data) {
+    if(saving) return;
+    saving = true;
+    try {
+      await setDoc(doc(db, 'datos', 'principal'), data, {merge: true});
+    } catch(e) {
+      console.error('Error guardando en Firebase:', e);
+    }
+    saving = false;
+  };
+
+  window.loadFromFirebase = async function() {
+    try {
+      const snap = await getDoc(doc(db, 'datos', 'principal'));
+      if(snap.exists()) return snap.data();
+    } catch(e) {
+      console.error('Error cargando Firebase:', e);
+    }
+    return null;
+  };
+
+  window.startRealtimeSync = function(callback) {
+    if(unsubscribe) unsubscribe();
+    unsubscribe = onSnapshot(doc(db, 'datos', 'principal'), (snap) => {
+      if(snap.exists() && !saving) {
+        callback(snap.data());
+      }
+    });
+  };
+</script>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo"><h1>Cleanby<span>G</span></h1><p>Sistema de gestión</p></div>
+    <div class="login-options">
+      <button class="login-btn admin" onclick="requestLogin('admin')">
+        <div class="btn-icon">👑</div>
+        <div class="btn-text">Administración<small>Acceso completo al sistema</small></div>
+      </button>
+      <div class="login-divider">─────── o ───────</div>
+      <button class="login-btn team" onclick="requestLogin('team')">
+        <div class="btn-icon">🧹</div>
+        <div class="btn-text">Equipo de trabajo<small>Ver mis tareas del día</small></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PW MODAL -->
+<div class="pw-overlay" id="pw-modal">
+  <div class="pw-box">
+    <h3 id="pw-title">Acceso</h3><p id="pw-desc">Ingresa tu contraseña</p>
+    <input type="password" id="pw-input" placeholder="Contraseña..." onkeydown="if(event.key==='Enter')confirmLogin()">
+    <div class="pw-error" id="pw-error">Contraseña incorrecta</div>
+    <div class="pw-actions"><button class="pw-cancel" onclick="closePwModal()">Cancelar</button><button class="pw-confirm" onclick="confirmLogin()">Entrar</button></div>
+  </div>
+</div>
+
+<!-- MEMBER SELECT -->
+<div id="member-select-screen" class="screen">
+  <div class="member-select-card">
+    <h2>¿Quién eres? 👋</h2>
+    <p>Selecciona tu nombre para ver tus tareas</p>
+    <div class="member-list" id="member-list-btns"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="screen-admin" class="screen">
+  <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><h1>Cleanby<span>G</span></h1><p>Administración</p></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('dashboard')"><span class="ni">🏠</span> Dashboard <span class="nav-badge" id="nb-aus" style="display:none">!</span></div>
+      <div class="nav-item" onclick="showPage('clientes')"><span class="ni">👤</span> Clientes</div>
+      <div class="nav-item" onclick="showPage('agenda')"><span class="ni">📅</span> Agenda</div>
+      <div class="nav-item" onclick="showPage('tareas')"><span class="ni">📋</span> Tareas</div>
+      <div class="nav-item" onclick="showPage('ingresos')"><span class="ni">💰</span> Ingresos</div>
+      <div class="nav-item" onclick="showPage('equipo')"><span class="ni">👥</span> Equipo</div>
+      <div class="nav-item" onclick="showPage('ausencias')"><span class="ni">⚠️</span> Ausencias <span class="nav-badge" id="nb-aus2" style="display:none">!</span></div>
+      <div class="nav-item" onclick="showPage('nomina')"><span class="ni">💼</span> Nómina</div>
+    </nav>
+    <div class="sidebar-footer"><div class="logout-btn" onclick="logout()">← Cerrar sesión</div></div>
+  </aside>
+  <main class="admin-main">
+
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div><h2>Dashboard 🌿</h2><p>Resumen de tu negocio</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="exportarDatos()">⬇️ Exportar datos</button>
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer">⬆️ Importar datos<input type="file" id="import-file" accept=".json" style="display:none" onchange="importarDatos(event)"></label>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('m-importar-texto')">📋 Importar desde texto</button>
+        </div>
+      </div>
+      <div id="dash-alert"></div>
+      <div class="stats-grid">
+        <div class="stat-card c1"><div class="stat-label">Clientes</div><div class="stat-val" id="s-clientes">0</div><div class="stat-sub">Registrados</div></div>
+        <div class="stat-card c2"><div class="stat-label">Citas este mes</div><div class="stat-val" id="s-citas">0</div><div class="stat-sub">Programadas</div></div>
+        <div class="stat-card c3"><div class="stat-label">Ingresos</div><div class="stat-val" id="s-ingresos">$0</div><div class="stat-sub">Este mes</div></div>
+        <div class="stat-card c4"><div class="stat-label">Pendientes</div><div class="stat-val" id="s-pendientes">$0</div><div class="stat-sub">Por cobrar</div></div>
+      </div>
+      <div class="dash-grid">
+        <div class="card"><div class="card-title">📅 Próximas citas</div><div id="d-citas"></div></div>
+        <div class="card"><div class="card-title">💰 Últimos pagos</div><div id="d-pagos"></div></div>
+      </div>
+    </div>
+
+    <div id="page-clientes" class="page">
+      <div class="page-header"><div><h2>Clientes</h2><p>Gestiona tu cartera</p></div><button class="btn btn-primary" onclick="openModal('m-cliente')">+ Agregar cliente</button></div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Cliente</th><th>Teléfono</th><th>Dirección</th><th>Frecuencia</th><th>Precio</th><th>Tareas</th><th></th></tr></thead>
+        <tbody id="tb-clientes"></tbody>
+      </table></div></div>
+    </div>
+
+    <div id="page-agenda" class="page">
+      <div class="page-header"><div><h2>Agenda</h2><p>Organiza tus citas</p></div><button class="btn btn-primary" onclick="openModal('m-cita')">+ Nueva cita</button></div>
+      <div id="agenda-wrap"></div>
+    </div>
+
+    <div id="page-tareas" class="page">
+      <div class="page-header"><div><h2>Lista maestra de tareas</h2><p>Todo lo que ofrece CleanbyG</p></div></div>
+      <div class="card" style="max-width:600px">
+        <div class="card-title">📋 Tareas disponibles</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Agrega aquí todo lo que Gladys puede hacer. Luego seleccionas las que aplican a cada cliente.</p>
+        <div id="master-tasks-list"></div>
+        <div class="add-task-row">
+          <select id="new-task-seccion" style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none">
+            <option>Baños</option><option>Cocina</option><option>Desempolvado</option>
+            <option>Aspirado</option><option>Vidrios</option><option selected>General</option><option>Otros</option>
+          </select>
+          <input id="new-master-task" placeholder="Ej: Limpiar chimenea..." onkeydown="if(event.key==='Enter')addMasterTask()" style="flex:1">
+          <button class="btn btn-primary" onclick="addMasterTask()">+ Agregar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-ingresos" class="page">
+      <div class="page-header"><div><h2>Ingresos</h2><p>Control financiero</p></div><button class="btn btn-primary" onclick="openModal('m-pago')">+ Registrar pago</button></div>
+      <div class="income-hero"><div><h3>Total del mes</h3><div class="amount" id="total-mes">$0</div><div class="sub" id="mes-label">—</div></div><div class="icon">💵</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+        <div class="card"><div class="stat-label">Cobrado</div><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--sage);margin:5px 0" id="i-pagado">$0</div><div class="progress-bar"><div class="progress-fill" id="p-pagado" style="width:0%;background:var(--sage)"></div></div></div>
+        <div class="card"><div class="stat-label">Pendiente</div><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--terra);margin:5px 0" id="i-pend">$0</div><div class="progress-bar"><div class="progress-fill" id="p-pend" style="width:0%;background:var(--terra)"></div></div></div>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Fecha</th><th>Cliente</th><th>Servicio</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="tb-pagos"></tbody>
+      </table></div></div>
+    </div>
+
+    <div id="page-equipo" class="page">
+      <div class="page-header"><div><h2>Equipo</h2><p>Gestiona a tu equipo</p></div><button class="btn btn-primary" onclick="openModal('m-miembro')">+ Agregar miembro</button></div>
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:22px;">
+        <div class="stat-card c1"><div class="stat-label">Total</div><div class="stat-val" id="e-total">0</div></div>
+        <div class="stat-card c2"><div class="stat-label">Activos</div><div class="stat-val" id="e-activos">0</div></div>
+        <div class="stat-card c3"><div class="stat-label">Roles</div><div class="stat-val" id="e-roles">0</div></div>
+      </div>
+      <div class="team-cards" id="team-cards-wrap"></div>
+    </div>
+
+
+    <div id="page-nomina" class="page">
+      <div class="page-header">
+        <div><h2>Nómina semanal</h2><p>Lo que genera cada miembro según sus horas</p></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="cambiarSemana(-1)">←</button>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:12px;color:var(--muted);font-weight:500">Semana</label>
+            <select id="nom-semana-sel" onchange="irASemana()" style="padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;background:var(--cream);outline:none;cursor:pointer"></select>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="cambiarSemana(1)">→</button>
+          <div style="font-size:12px;color:var(--muted)" id="nom-fechas-label">—</div>
+        </div>
+      </div>
+      <input type="hidden" id="nom-inicio">
+      <input type="hidden" id="nom-fin">
+      <input type="hidden" id="nom-semana-label">
+
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>📋 Detalle por miembro <span id="nom-detalle-semana" style="font-size:12px;color:var(--muted);font-weight:400;margin-left:6px"></span></div>
+          <div id="nom-pago-btn-wrap"></div>
+        </div>
+        <div id="nomina-detalle"></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">⏱️ Registro de horarios — <span id="reg-semana-label" style="font-size:13px;color:var(--sage);font-weight:500"></span></div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Selecciona el día dentro de la semana. Puedes editar si hay un error.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;flex-wrap:wrap">
+          <div class="form-group"><label>Miembro</label><select id="hr-miembro"></select></div>
+          <div class="form-group"><label>Fecha</label><input type="date" id="hr-fecha"></div>
+          <div class="form-group"><label>Entrada</label><input type="time" id="hr-entrada"></div>
+          <div class="form-group"><label>Salida (opcional)</label><input type="time" id="hr-salida-admin"></div>
+          <button class="btn btn-primary" style="align-self:flex-end" onclick="registrarEntrada()">+ Registrar</button>
+        </div>
+        <div id="horas-log" style="margin-top:16px"></div>
+      </div>
+    </div>
+    <div id="page-ausencias" class="page">
+      <div class="page-header"><div><h2>Ausencias</h2><p>Avisos del equipo con anticipación</p></div></div>
+      <div style="max-width:700px" id="ausencias-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="m-cliente">
+  <div class="modal">
+    <div class="modal-header"><h3>Nuevo cliente</h3><button class="modal-close" onclick="closeModal('m-cliente')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nombre</label><input id="cn" placeholder="Ej: María González"></div>
+      <div class="form-group"><label>Teléfono</label><input id="ct" placeholder="55 1234 5678"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Dirección</label><input id="cd" placeholder="Calle, número, colonia"></div>
+      <div class="form-group"><label>Frecuencia</label><select id="cf"><option>Semanal</option><option>Quincenal</option><option>Mensual</option><option>Eventual</option></select></div>
+      <div class="form-group"><label>Precio ($)</label><input id="cp" type="number" placeholder="500"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Notas</label><textarea id="cno" rows="2" placeholder="Mascotas, llaves, instrucciones..."></textarea></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Procedimientos específicos</label><textarea id="cpro" rows="4" placeholder="Describe cómo se limpia esta casa: orden de los cuartos, productos a usar, instrucciones especiales, preferencias del cliente..."></textarea></div>
+    </div>
+    <div class="modal-sep">Tareas de este cliente</div>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Selecciona qué se hace en esta casa</p>
+    <div class="task-check-list" id="client-task-selector"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('m-cliente')">Cancelar</button><button class="btn btn-primary" onclick="saveCliente()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m-editar-cliente">
+  <div class="modal">
+    <div class="modal-header"><h3>Tareas del cliente</h3><button class="modal-close" onclick="closeModal('m-editar-cliente')">×</button></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Selecciona las tareas que aplican para esta casa</p>
+    <div class="task-check-list" id="edit-task-selector"></div>
+    <input type="hidden" id="edit-cliente-id">
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('m-editar-cliente')">Cancelar</button><button class="btn btn-primary" onclick="saveClienteTareas()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m-cita">
+  <div class="modal">
+    <div class="modal-header"><h3>Nueva cita</h3><button class="modal-close" onclick="closeModal('m-cita')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Cliente</label><select id="ci-cli" onchange="loadCitaTasks()"></select></div>
+      <div class="form-group"><label>Tipo de servicio</label><input id="ci-tipo" placeholder="Ej: Limpieza general"></div>
+      <div class="form-group"><label>Fecha</label><input id="ci-fecha" type="date"></div>
+      <div class="form-group"><label>Hora</label><input id="ci-hora" type="time"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Notas</label><textarea id="ci-notas" rows="2" placeholder="Instrucciones especiales..."></textarea></div>
+    </div>
+    <div class="modal-sep">👥 ¿Quién va a esta casa?</div>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Selecciona los miembros que van este día y su hora de llegada</p>
+    <div id="cita-members-rows"></div>
+    <div class="modal-sep">🧹 Asignación de tareas</div>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px">Asigna a cada miembro sus tareas en esta casa</p>
+    <div id="cita-assign-rows"><p style="font-size:13px;color:var(--muted);padding:10px 0">Primero selecciona un cliente con tareas asignadas</p></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('m-cita')">Cancelar</button><button class="btn btn-primary" onclick="saveCita()">Agendar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m-pago">
+  <div class="modal">
+    <div class="modal-header"><h3>Registrar pago</h3><button class="modal-close" onclick="closeModal('m-pago')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Cliente</label><select id="pa-cli"></select></div>
+      <div class="form-group"><label>Servicio</label><input id="pa-srv" placeholder="Ej: Limpieza general"></div>
+      <div class="form-group"><label>Fecha</label><input id="pa-fecha" type="date"></div>
+      <div class="form-group"><label>Monto ($)</label><input id="pa-monto" type="number" placeholder="500"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Estado</label><select id="pa-estado"><option value="Pagado">✅ Pagado</option><option value="Pendiente">⏳ Pendiente</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('m-pago')">Cancelar</button><button class="btn btn-primary" onclick="savePago()">Registrar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m-miembro">
+  <div class="modal">
+    <div class="modal-header"><h3>Nuevo miembro</h3><button class="modal-close" onclick="closeModal('m-miembro')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nombre</label><input id="mi-n" placeholder="Laura Martínez"></div>
+      <div class="form-group"><label>Rol</label><select id="mi-r"><option>Limpiadora</option><option>Supervisora</option><option>Apoyo</option><option>Coordinadora</option></select></div>
+      <div class="form-group"><label>Teléfono</label><input id="mi-t" placeholder="55 9876 5432"></div>
+      <div class="form-group"><label>Fecha de inicio</label><input type="date" id="mi-inicio"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Días que trabaja</label><div class="days-selector" id="mi-dias"><button type="button" class="day-btn" data-day="Lun">Lun</button><button type="button" class="day-btn" data-day="Mar">Mar</button><button type="button" class="day-btn" data-day="Miér">Miér</button><button type="button" class="day-btn" data-day="Jue">Jue</button><button type="button" class="day-btn" data-day="Vie">Vie</button><button type="button" class="day-btn" data-day="Sáb">Sáb</button><button type="button" class="day-btn" data-day="Dom">Dom</button></div></div>
+      <div class="form-group"><label>Hora entrada</label><input type="time" id="mi-entrada"></div><div class="form-group"><label>Hora salida</label><input type="time" id="mi-salida"></div><div class="form-group"><label>Tarifa por hora ($)</label><input type="number" id="mi-tarifa" placeholder="Ej: 80"></div><div class="form-group" style="grid-column:1/-1"><label>Notas</label><textarea id="mi-no" rows="2" placeholder="Habilidades, zona, observaciones..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('m-miembro')">Cancelar</button><button class="btn btn-primary" onclick="saveMiembro()">Agregar</button></div>
+  </div>
+</div>
+
+<!-- TEAM VIEW -->
+<div id="screen-team" class="screen">
+  <div class="team-portal">
+    <div class="team-top-bar">
+      <div><h1>Cleanby<span>G</span></h1><div class="team-who" id="team-who-label">—</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">← Salir</button>
+    </div>
+    <div class="date-banner"><div><div class="dl">Hoy</div><div class="dv" id="team-date-val">—</div></div><div class="di">🧹</div></div>
+    <div id="team-content"></div>
+    <div style="text-align:center;margin-top:24px;padding-bottom:16px">
+      <span onclick="toggleAusForm()" style="font-size:13px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px">¿Necesitas un permiso?</span>
+      <div id="aus-form-body" style="display:none;margin-top:14px;background:white;border:1px solid var(--border);border-radius:12px;padding:16px;text-align:left">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--ink)">Solicitar permiso</div>
+        <div class="aus-row">
+          <input type="date" id="aus-fecha" placeholder="Fecha de ausencia">
+          <textarea id="aus-motivo" placeholder="¿Cuál es el motivo?" rows="2" style="resize:none"></textarea>
+          <button class="btn btn-ghost" style="width:100%;border-color:var(--border)" onclick="reportarAusencia()">Enviar solicitud a Gladys</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ADMIN_PW='admin123', TEAM_PW='equipo123';
+let clientes=JSON.parse(localStorage.getItem('cbg3_clientes')||'[]');
+let citas=JSON.parse(localStorage.getItem('cbg3_citas')||'[]');
+let pagos=JSON.parse(localStorage.getItem('cbg3_pagos')||'[]');
+let equipo=JSON.parse(localStorage.getItem('cbg3_equipo')||'[]');
+let ausencias=JSON.parse(localStorage.getItem('cbg3_ausencias')||'[]');
+let horasLog=JSON.parse(localStorage.getItem('cbg3_horas')||'[]');
+let horasRegistro=JSON.parse(localStorage.getItem('cbg3_horarios')||'[]');
+let semanasPagadas=JSON.parse(localStorage.getItem('cbg3_semanas_pagadas')||'[]');
+let masterTasks=JSON.parse(localStorage.getItem('cbg3_tasks_v3')||JSON.stringify([
+  {id:1,t:'Barrer y trapear pisos',seccion:'General'},
+  {id:2,t:'Aspirar alfombras y tapetes',seccion:'Aspirado'},
+  {id:3,t:'Sacudir polvo en muebles y superficies',seccion:'Desempolvado'},
+  {id:4,t:'Limpiar ventanas por dentro',seccion:'Vidrios'},
+  {id:5,t:'Limpiar inodoro completo',seccion:'Baños'},
+  {id:6,t:'Limpiar lavabo y grifería',seccion:'Baños'},
+  {id:7,t:'Fregar azulejos y paredes',seccion:'Baños'},
+  {id:8,t:'Limpiar estufa y campana',seccion:'Cocina'},
+  {id:9,t:'Fregar fregadero y mesetas',seccion:'Cocina'},
+  {id:10,t:'Limpiar microondas',seccion:'Cocina'},
+  {id:11,t:'Vaciar basureros',seccion:'General'},
+  {id:12,t:'Limpiar manijas e interruptores',seccion:'General'}
+]));
+let currentMember=null;
+function saveAll(){
+  localStorage.setItem('cbg3_clientes',JSON.stringify(clientes));
+  localStorage.setItem('cbg3_citas',JSON.stringify(citas));
+  localStorage.setItem('cbg3_pagos',JSON.stringify(pagos));
+  localStorage.setItem('cbg3_equipo',JSON.stringify(equipo));
+  localStorage.setItem('cbg3_ausencias',JSON.stringify(ausencias));
+  localStorage.setItem('cbg3_tasks_v3',JSON.stringify(masterTasks));
+  localStorage.setItem('cbg3_horas',JSON.stringify(horasLog));
+  localStorage.setItem('cbg3_horarios',JSON.stringify(horasRegistro));
+  localStorage.setItem('cbg3_semanas_pagadas',JSON.stringify(semanasPagadas));
+  if(window.saveToFirebase){
+    // Build firebase data object - NEVER include empty arrays
+    // This prevents accidentally wiping data in Firebase
+    var fbData = {updated: new Date().toISOString()};
+    if(clientes.length>0) fbData.clientes=clientes;
+    if(citas.length>0) fbData.citas=citas;
+    if(pagos.length>0) fbData.pagos=pagos;
+    if(equipo.length>0) fbData.equipo=equipo;
+    if(ausencias.length>0) fbData.ausencias=ausencias;
+    if(masterTasks.length>0) fbData.masterTasks=masterTasks;
+    if(horasLog.length>0) fbData.horasLog=horasLog;
+    if(horasRegistro.length>0) fbData.horasRegistro=horasRegistro;
+    if(semanasPagadas.length>0) fbData.semanasPagadas=semanasPagadas;
+    window.saveToFirebase(fbData);
+  }
+}
+
+// ── LOGIN ──
+let loginTarget=null;
+function requestLogin(t){loginTarget=t;const a=t==='admin';document.getElementById('pw-title').textContent=a?'🔐 Administración':'🧹 Acceso equipo';document.getElementById('pw-desc').textContent=a?'Contraseña de administrador':'Contraseña del equipo';document.getElementById('pw-input').value='';document.getElementById('pw-error').style.display='none';document.getElementById('pw-modal').classList.add('open');setTimeout(()=>document.getElementById('pw-input').focus(),200)}
+function confirmLogin(){const v=document.getElementById('pw-input').value,ok=loginTarget==='admin'?v===ADMIN_PW:v===TEAM_PW;if(!ok){document.getElementById('pw-error').style.display='block';document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();return}closePwModal();if(loginTarget==='admin'){goTo('screen-admin');initAdmin()}else{goTo('member-select-screen');renderMemberSelect()}}
+function closePwModal(){document.getElementById('pw-modal').classList.remove('open')}
+function logout(){currentMember=null;goTo('screen-login')}
+function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+// ── MEMBER SELECT ──
+function renderMemberSelect(){const w=document.getElementById('member-list-btns'),a=equipo.filter(m=>m.activo);if(!a.length){w.innerHTML='<p style="color:rgba(255,255,255,0.4);font-size:14px;text-align:center;padding:20px">No hay miembros activos.<br>Pídele a Gladys que te agregue.</p>';return}w.innerHTML=a.map(m=>`<button class="member-btn" onclick="selectMember(${m.id})"><div class="member-av" style="background:${aC(m.nombre)}">${m.nombre[0].toUpperCase()}</div><div class="member-btn-info">${m.nombre}<small>${m.rol}</small></div></button>`).join('')}
+function selectMember(id){
+  currentMember=equipo.find(m=>m.id===id);
+  goTo('screen-team');
+  initTeam();
+}
+
+// ── ADMIN NAV ──
+function applyFirebaseData(data){
+  if(!data) return;
+  if(data.clientes&&data.clientes.length>0) clientes=data.clientes;
+  if(data.citas) citas=data.citas;
+  if(data.pagos) pagos=data.pagos;
+  if(data.equipo&&data.equipo.length>0) equipo=data.equipo;
+  if(data.ausencias) ausencias=data.ausencias;
+  if(data.masterTasks&&data.masterTasks.length>0) masterTasks=data.masterTasks;
+  if(data.horasLog&&data.horasLog.length>0) horasLog=data.horasLog;
+  if(data.horasRegistro&&data.horasRegistro.length>0) horasRegistro=data.horasRegistro.map(function(h){return Object.assign({},h,{miembroId:Number(h.miembroId)});});
+  if(data.semanasPagadas&&data.semanasPagadas.length>0) semanasPagadas=data.semanasPagadas;
+}
+
+function refreshCurrentPage(){
+  var pg=document.querySelector('.page.active');
+  if(!pg) return;
+  var id=pg.id.replace('page-','');
+  var fns={dashboard:renderDashboard,clientes:renderClientes,agenda:renderAgenda,tareas:renderMasterTasks,ingresos:renderIngresos,equipo:renderEquipo,ausencias:renderAusencias,nomina:initNomina};
+  if(fns[id]) fns[id]();
+}
+
+async function initAdmin(){
+  showToast('⏳ Cargando...');
+  // Step 1: Load data first, THEN show page
+  if(window.loadFromFirebase){
+    try{
+      var data=await window.loadFromFirebase();
+      applyFirebaseData(data);
+    }catch(e){console.error('Load error:',e);}
+  }
+  // Step 2: Show dashboard with real data
+  showPage('dashboard');
+  showToast('✅ Sincronizado');
+  // Step 3: Start realtime sync for future changes
+  if(window.startRealtimeSync){
+    window.startRealtimeSync(function(data){
+      applyFirebaseData(data);
+      refreshCurrentPage();
+    });
+  }
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const labels={dashboard:'Dashboard',clientes:'Clientes',agenda:'Agenda',tareas:'Tareas',ingresos:'Ingresos',equipo:'Equipo',ausencias:'Ausencias',nomina:'Nómina'};
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.textContent.trim().startsWith(labels[id]||'NOPE')||n.textContent.includes(labels[id]||'NOPE'))n.classList.add('active')});
+  const fns={dashboard:renderDashboard,clientes:renderClientes,agenda:renderAgenda,tareas:renderMasterTasks,ingresos:renderIngresos,equipo:renderEquipo,ausencias:renderAusencias,nomina:initNomina};
+  if(fns[id])fns[id]();
+  closeSidebar();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open')}
+
+// ── MODALS ──
+function openModal(id){if(id==='m-cita')fillCitaModal();if(id==='m-pago')fillPagoModal();if(id==='m-cliente')fillClienteModal();const today=new Date().toISOString().split('T')[0];if(id==='m-cita')document.getElementById('ci-fecha').value=today;if(id==='m-pago')document.getElementById('pa-fecha').value=today;document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+document.getElementById('pw-modal').addEventListener('click',e=>{if(e.target===document.getElementById('pw-modal'))closePwModal()});
+
+// ── MASTER TASKS ──
+function renderMasterTasks(){
+  const w=document.getElementById('master-tasks-list');
+  if(!masterTasks.length){w.innerHTML='<p style="color:var(--muted);font-size:13px;padding:10px 0">Sin tareas aún</p>';return;}
+  const secciones={};
+  masterTasks.forEach(t=>{const sec=t.seccion||'General';if(!secciones[sec])secciones[sec]=[];secciones[sec].push(t);});
+  const iconos={'Baños':'🛁','Cocina':'🍳','Desempolvado':'🧹','Aspirado':'🌀','Vidrios':'🪟','General':'🏠','Otros':'📋'};
+  w.innerHTML=Object.entries(secciones).map(([sec,tareas])=>`
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:var(--sage-dark);font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--sage-pale)">${iconos[sec]||'📋'} ${sec}</div>
+      ${tareas.map(t=>`
+        <div class="task-master-item">
+          <span class="task-master-label" id="tl-${t.id}">• ${t.t}</span>
+          <div style="display:flex;gap:4px;margin-left:auto">
+            <button class="btn btn-ghost btn-sm" onclick="startEditTask(${t.id})" style="padding:4px 8px;font-size:12px">✏️</button>
+            <button class="task-del-btn" style="opacity:1" onclick="delMasterTask(${t.id})">×</button>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+function startEditTask(id){
+  const t=masterTasks.find(x=>x.id===id);
+  if(!t)return;
+  const el=document.getElementById('tl-'+id);
+  if(!el)return;
+  const row=el.parentElement;
+  row.innerHTML=`
+    <input id="eti-${id}" value="${t.t}" style="flex:1;padding:6px 10px;border:1px solid var(--sage);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13.5px;background:white;outline:none">
+    <div style="display:flex;gap:4px;margin-left:8px">
+      <button class="btn btn-primary btn-sm" onclick="saveEditTask(${id})">✓</button>
+      <button class="btn btn-ghost btn-sm" onclick="renderMasterTasks()">×</button>
+    </div>`;
+  const inp=document.getElementById('eti-'+id);
+  inp.focus();
+  inp.onkeydown=e=>{if(e.key==='Enter')saveEditTask(id);if(e.key==='Escape')renderMasterTasks()};
+}
+function saveEditTask(id){
+  const inp=document.getElementById('eti-'+id);
+  if(!inp)return;
+  const t=masterTasks.find(x=>x.id===id);
+  if(t)t.t=inp.value.trim()||t.t;
+  saveAll();renderMasterTasks();
+}
+function addMasterTask(){
+  const inp=document.getElementById('new-master-task'),t=inp.value.trim();
+  if(!t)return;
+  const secSel=document.getElementById('new-task-seccion');
+  const sec=secSel?secSel.value:'General';
+  const mx=masterTasks.length?Math.max(...masterTasks.map(x=>x.id)):0;
+  masterTasks.push({id:mx+1,t,seccion:sec});
+  inp.value='';saveAll();renderMasterTasks();
+}
+function delMasterTask(id){masterTasks=masterTasks.filter(t=>t.id!==id);saveAll();renderMasterTasks()}
+
+// ── CLIENTES ──
+function fillClienteModal(){
+  const w=document.getElementById('client-task-selector');
+  if(!masterTasks.length){w.innerHTML='<p style="color:var(--muted);font-size:13px">Primero agrega tareas en la sección "Tareas"</p>';return;}
+  // Group by section
+  const secciones={};
+  masterTasks.forEach(t=>{
+    const sec=t.seccion||'General';
+    if(!secciones[sec]) secciones[sec]=[];
+    secciones[sec].push(t);
+  });
+  const iconos={'Baños':'🛁','Cocina':'🍳','Desempolvado':'🧹','Aspirado':'🌀','Vidrios':'🪟','General':'🏠','Otros':'📋'};
+  w.innerHTML=Object.entries(secciones).map(([sec,tareas])=>`
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+        <span>${iconos[sec]||'📋'}</span> ${sec}
+      </div>
+      ${tareas.map(t=>`
+        <div class="task-check-item" id="ctask-${t.id}" onclick="toggleTCI('ctask-${t.id}')">
+          <div class="tci-box"></div>
+          <span class="tci-label">${t.t}</span>
+        </div>`).join('')}
+    </div>`).join('');
+}
+function toggleTCI(id){const el=document.getElementById(id);if(!el)return;el.classList.toggle('selected');el.querySelector('.tci-box').textContent=el.classList.contains('selected')?'✓':''}
+function getSelectedTasks(prefix){
+  return masterTasks.filter(t=>document.getElementById(prefix+t.id)?.classList.contains('selected')).map(t=>({id:t.id,t:t.t}));
+}
+function saveCliente(){const n=document.getElementById('cn').value.trim();if(!n)return alert('Ingresa un nombre');clientes.push({id:Date.now(),nombre:n,tel:document.getElementById('ct').value,dir:document.getElementById('cd').value,freq:document.getElementById('cf').value,precio:document.getElementById('cp').value,notas:document.getElementById('cno').value,procedimientos:document.getElementById('cpro').value,taskIds:getSelectedTasks('ctask-'),activo:true});saveAll();closeModal('m-cliente');['cn','ct','cd','cp','cno','cpro'].forEach(i=>document.getElementById(i).value='');renderClientes()}
+function renderClientes(){const tb=document.getElementById('tb-clientes');if(!clientes.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="e-icon">👤</div><p>Sin clientes aún</p></div></td></tr>';return}const sorted=[...clientes].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));tb.innerHTML=sorted.map(c=>`<tr><td><div class="name-cell"><div class="avatar" style="background:${aC(c.nombre)};color:white">${c.nombre[0].toUpperCase()}</div>${c.nombre}</div></td><td>${c.tel||'—'}</td><td style="font-size:12.5px;color:var(--muted);max-width:140px">${c.dir||'—'}</td><td><span class="badge badge-green">${c.freq}</span></td><td style="font-weight:600">${c.precio?'$'+Number(c.precio).toLocaleString():'—'}</td><td><span class="badge badge-blue" style="cursor:pointer" onclick="editClienteTareas(${c.id})">${(c.taskIds||[]).length} tareas ✏️</span></td><td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="editCliente(${c.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="delCliente(${c.id})">×</button></td></tr>`).join('')}
+function editClienteTareas(id){
+  const c=clientes.find(x=>x.id===id);if(!c)return;
+  document.getElementById('edit-cliente-id').value=id;
+  const w=document.getElementById('edit-task-selector');
+  const taskIds=c.taskIds||[];
+  const secciones={};
+  masterTasks.forEach(function(t){var sec=t.seccion||'General';if(!secciones[sec])secciones[sec]=[];secciones[sec].push(t);});
+  const iconos={'Baños':'🛁','Cocina':'🍳','Desempolvado':'🧹','Aspirado':'🌀','Vidrios':'🪟','General':'🏠','Otros':'📋'};
+  var html='';
+  Object.entries(secciones).forEach(function(entry){
+    var sec=entry[0], tareas=entry[1];
+    html+='<div style="margin-bottom:12px">';
+    html+='<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);font-weight:600;margin-bottom:6px">'+(iconos[sec]||'📋')+' '+sec+'</div>';
+    tareas.forEach(function(t){
+      var sel=taskIds.some(function(x){return (x.id||x.tId)===t.id;});
+      html+='<div class="task-check-item'+(sel?' selected':'')+'" id="etask-'+t.id+'" data-tid="'+t.id+'" onclick="toggleETI(this)">';
+      html+='<div class="tci-box">'+(sel?'✓':'')+'</div>';
+      html+='<span class="tci-label">'+t.t+'</span></div>';
+    });
+    html+='</div>';
+  });
+  w.innerHTML=html;
+  document.getElementById('m-editar-cliente').classList.add('open');
+}
+
+function toggleETI(el){
+  el.classList.toggle('selected');
+  el.querySelector('.tci-box').textContent=el.classList.contains('selected')?'✓':'';
+}
+function saveClienteTareas(){
+  const id=parseInt(document.getElementById('edit-cliente-id').value),c=clientes.find(x=>x.id===id);
+  if(c){
+    c.taskIds=masterTasks.filter(function(t){
+      var el=document.getElementById('etask-'+t.id);
+      return el&&el.classList.contains('selected');
+    }).map(function(t){return {id:t.id,t:t.t};});
+  }
+  saveAll();closeModal('m-editar-cliente');renderClientes();
+}
+
+function editCliente(id){
+  const c=clientes.find(x=>x.id===id);
+  if(!c)return;
+  document.getElementById('cn').value=c.nombre||'';
+  document.getElementById('ct').value=c.tel||'';
+  document.getElementById('cd').value=c.dir||'';
+  document.getElementById('cf').value=c.freq||'Semanal';
+  document.getElementById('cp').value=c.precio||'';
+  document.getElementById('cno').value=c.notas||'';
+  if(document.getElementById('cpro')) document.getElementById('cpro').value=c.procedimientos||'';
+  // Store editing id
+  document.getElementById('m-cliente').dataset.editId=id;
+  document.getElementById('m-cliente').querySelector('h3').textContent='Editar cliente';
+  fillClienteModal();
+  // Pre-select tasks
+  setTimeout(()=>{
+    (c.taskIds||[]).forEach(tk=>{
+      const el=document.getElementById('ctask-'+tk.id);
+      if(el&&!el.classList.contains('selected')){el.classList.add('selected');el.querySelector('.tci-box').textContent='✓';}
+    });
+  },50);
+  openModal('m-cliente');
+}
+function delCliente(id){if(confirm('¿Eliminar cliente?')){clientes=clientes.filter(c=>c.id!==id);saveAll();renderClientes();renderDashboard()}}
+
+// ── AGENDA ──
+function fillCitaModal(){
+  const s=document.getElementById('ci-cli');
+  s.innerHTML=clientes.length?clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join(''):'<option value="">— Sin clientes —</option>';
+  document.getElementById('ci-fecha').value=new Date().toISOString().split('T')[0];
+  renderMemberRows();
+  loadCitaTasks();
+}
+function renderMemberRows(){
+  const active=equipo.filter(m=>m.activo);
+  const w=document.getElementById('cita-members-rows');
+  if(!active.length){w.innerHTML='<p style="font-size:13px;color:var(--muted)">Sin miembros activos en el equipo</p>';return;}
+  w.innerHTML=active.map(m=>`
+    <div class="assign-row" style="align-items:center">
+      <div style="display:flex;align-items:center;gap:8px;flex:1">
+        <input type="checkbox" id="mem-chk-${m.id}" style="width:16px;height:16px;accent-color:var(--sage);cursor:pointer">
+        <label for="mem-chk-${m.id}" style="font-size:13.5px;cursor:pointer;font-weight:500">${m.nombre} <span style="color:var(--muted);font-weight:400;font-size:12px">(${m.rol})</span></label>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:12px;color:var(--muted)">Llega:</span>
+        <input type="time" id="mem-hora-${m.id}" style="padding:5px 8px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none;width:100px">
+      </div>
+    </div>`).join('');
+}
+function fillPagoModal(){const s=document.getElementById('pa-cli');s.innerHTML=clientes.length?clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join(''):'<option value="">— Sin clientes —</option>';document.getElementById('pa-fecha').value=new Date().toISOString().split('T')[0]}
+function loadCitaTasks(){
+  const cliId=document.getElementById('ci-cli').value,c=clientes.find(x=>x.id==cliId),w=document.getElementById('cita-assign-rows');
+  if(!c||(c.taskIds||[]).length===0){w.innerHTML='<p style="font-size:13px;color:var(--muted);padding:10px 0">Este cliente no tiene tareas asignadas todavía</p>';return;}
+  const active=equipo.filter(m=>m.activo);
+  const taskIds=c.taskIds||[];
+  w.innerHTML=taskIds.map(tk=>`
+    <div class="assign-row">
+      <span class="assign-task-label">• ${tk.t||tk.texto||'Tarea'}</span>
+      <select class="assign-select" id="asgn-${tk.id}">
+        <option value="">— Sin asignar —</option>
+        ${active.map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
+function saveCita(){
+  const cliId=document.getElementById('ci-cli').value,fecha=document.getElementById('ci-fecha').value;
+  if(!cliId||!fecha)return alert('Selecciona cliente y fecha');
+  const c=clientes.find(x=>x.id==cliId);
+  // Capture member assignments with arrival times
+  const miembrosAsignados=equipo.filter(m=>m.activo&&document.getElementById('mem-chk-'+m.id)?.checked).map(m=>({
+    id:m.id,nombre:m.nombre,horaLlegada:document.getElementById('mem-hora-'+m.id)?.value||''
+  }));
+  // Capture task assignments
+  const taskIds=c?.taskIds||[],assignments={};
+  taskIds.forEach(tk=>{const s=document.getElementById('asgn-'+tk.id);if(s&&s.value)assignments[tk.id]=parseInt(s.value)});
+  citas.push({id:Date.now(),cliId:parseInt(cliId),cliNombre:c?.nombre||'Cliente',dir:c?.dir||'',tipo:document.getElementById('ci-tipo').value||'Limpieza',fecha,hora:document.getElementById('ci-hora').value,notas:document.getElementById('ci-notas').value,taskIds:c?.taskIds||[],assignments,miembrosAsignados,tasksDone:{},estado:'Pendiente'});
+  saveAll();closeModal('m-cita');
+  document.getElementById('ci-notas').value='';document.getElementById('ci-tipo').value='';
+  renderAgenda();renderDashboard();
+}
+function renderAgenda(){const w=document.getElementById('agenda-wrap');if(!citas.length){w.innerHTML='<div class="empty card"><div class="e-icon">📅</div><p>Sin citas aún</p></div>';return}const sorted=[...citas].sort((a,b)=>a.fecha.localeCompare(b.fecha)),byDay={};sorted.forEach(c=>{if(!byDay[c.fecha])byDay[c.fecha]=[];byDay[c.fecha].push(c)});w.innerHTML=Object.entries(byDay).map(([f,arr])=>`<div class="agenda-day"><div class="agenda-day-label">${fmtF(f)}</div>${arr.map(c=>`<div class="agenda-event"><div class="event-dot" style="background:${c.estado==='Completada'?'var(--sage)':'var(--terra)'}"></div><div class="event-time">${c.hora||'—'}</div><div class="event-info"><strong>${c.cliNombre}</strong><span>${c.tipo||'Limpieza'}${c.notas?' · '+c.notas:''}</span></div><div class="event-actions"><span class="badge ${c.estado==='Completada'?'badge-green':'badge-orange'}">${c.estado}</span><button class="btn btn-ghost btn-sm" onclick="toggleCita(${c.id})">${c.estado==='Completada'?'↩':'✓'}</button><button class="btn btn-danger btn-sm" onclick="delCita(${c.id})">×</button></div></div>`).join('')}</div>`).join('')}
+function toggleCita(id){const c=citas.find(x=>x.id===id);if(c)c.estado=c.estado==='Completada'?'Pendiente':'Completada';saveAll();renderAgenda();renderDashboard()}
+function delCita(id){citas=citas.filter(c=>c.id!==id);saveAll();renderAgenda();renderDashboard()}
+
+// ── INGRESOS ──
+function savePago(){const cliId=document.getElementById('pa-cli').value,monto=parseFloat(document.getElementById('pa-monto').value);if(!cliId||!monto)return alert('Completa cliente y monto');const c=clientes.find(x=>x.id==cliId);pagos.push({id:Date.now(),cliNombre:c?.nombre||'Cliente',servicio:document.getElementById('pa-srv').value,fecha:document.getElementById('pa-fecha').value,monto,estado:document.getElementById('pa-estado').value});saveAll();closeModal('m-pago');document.getElementById('pa-monto').value='';document.getElementById('pa-srv').value='';renderIngresos();renderDashboard()}
+function renderIngresos(){const now=new Date(),m=now.getMonth(),y=now.getFullYear(),pm=pagos.filter(p=>{if(!p.fecha)return false;const d=new Date(p.fecha);return d.getMonth()===m&&d.getFullYear()===y}),total=pm.reduce((s,p)=>s+p.monto,0),pagado=pm.filter(p=>p.estado==='Pagado').reduce((s,p)=>s+p.monto,0),pend=pm.filter(p=>p.estado==='Pendiente').reduce((s,p)=>s+p.monto,0);document.getElementById('total-mes').textContent='$'+total.toLocaleString();document.getElementById('mes-label').textContent=now.toLocaleDateString('es-MX',{month:'long',year:'numeric'});document.getElementById('i-pagado').textContent='$'+pagado.toLocaleString();document.getElementById('i-pend').textContent='$'+pend.toLocaleString();document.getElementById('p-pagado').style.width=total?(pagado/total*100)+'%':'0%';document.getElementById('p-pend').style.width=total?(pend/total*100)+'%':'0%';const tb=document.getElementById('tb-pagos'),sorted=[...pagos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));if(!sorted.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="e-icon">💰</div><p>Sin pagos aún</p></div></td></tr>';return}tb.innerHTML=sorted.map(p=>`<tr><td style="font-size:12.5px;color:var(--muted)">${p.fecha?fmtF(p.fecha):'—'}</td><td><div class="name-cell"><div class="avatar" style="background:${aC(p.cliNombre)};color:white">${(p.cliNombre||'?')[0].toUpperCase()}</div>${p.cliNombre}</div></td><td><span class="badge badge-gray">${p.servicio||'—'}</span></td><td style="font-weight:600;font-family:'Fraunces',serif">$${p.monto.toLocaleString()}</td><td><span class="badge ${p.estado==='Pagado'?'badge-green':'badge-orange'}">${p.estado}</span></td><td style="display:flex;gap:5px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="togglePago(${p.id})">${p.estado==='Pagado'?'Pendiente':'Cobrado'}</button><button class="btn btn-danger btn-sm" onclick="delPago(${p.id})">×</button></td></tr>`).join('')}
+function togglePago(id){const p=pagos.find(x=>x.id===id);if(p)p.estado=p.estado==='Pagado'?'Pendiente':'Pagado';saveAll();renderIngresos();renderDashboard()}
+function delPago(id){pagos=pagos.filter(p=>p.id!==id);saveAll();renderIngresos();renderDashboard()}
+
+// ── EQUIPO ──
+document.addEventListener('click',function(e){if(e.target.classList.contains('day-btn'))e.target.classList.toggle('active')});
+function saveMiembro(){const n=document.getElementById('mi-n').value.trim();if(!n)return alert('Ingresa un nombre');equipo.push({id:Date.now(),nombre:n,rol:document.getElementById('mi-r').value,tel:document.getElementById('mi-t').value,inicio:document.getElementById('mi-inicio').value,dias:Array.from(document.querySelectorAll('#mi-dias .day-btn.active')).map(b=>b.dataset.day),entrada:document.getElementById('mi-entrada').value,salida:document.getElementById('mi-salida').value,tarifa:parseFloat(document.getElementById('mi-tarifa').value)||0,notas:document.getElementById('mi-no').value,activo:true});saveAll();closeModal('m-miembro');['mi-n','mi-t','mi-no','mi-entrada','mi-salida','mi-tarifa','mi-inicio'].forEach(i=>document.getElementById(i).value='');renderEquipo()}
+function renderEquipo(){document.getElementById('e-total').textContent=equipo.length;document.getElementById('e-activos').textContent=equipo.filter(m=>m.activo).length;document.getElementById('e-roles').textContent=new Set(equipo.map(m=>m.rol)).size;const w=document.getElementById('team-cards-wrap');if(!equipo.length){w.innerHTML='<div class="empty card"><div class="e-icon">👥</div><p>Sin miembros aún</p></div>';return}w.innerHTML=equipo.map(m=>`<div class="team-member-card"><div class="tm-top"><div class="tm-avatar" style="background:${aC(m.nombre)}">${m.nombre[0].toUpperCase()}</div><div><div class="tm-name">${m.nombre}</div><div class="tm-role">${m.rol}</div></div><span class="badge ${m.activo?'badge-green':'badge-gray'}" style="margin-left:auto;cursor:pointer" onclick="toggleMiembro(${m.id})">${m.activo?'Activo':'Inactivo'}</span></div><div class="tm-info"><span>📞 ${m.tel||'Sin teléfono'}</span><span>💵 $${m.tarifa||0}/hr</span><span>🕐 ${m.entrada&&m.salida ? m.entrada+' – '+m.salida : 'Sin horario'}</span><span>📅 ${(m.dias||[]).length ? (m.dias||[]).join(', ') : m.disp||'Sin días'}</span>${m.inicio?`<span>📆 Desde: ${fmtF(m.inicio)}</span>`:''}
+        ${m.notas?`<span>📝 ${m.notas}</span>`:''}</div><div class="tm-actions"><button class="btn btn-ghost btn-sm" onclick="editMiembro(${m.id})">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="delMiembro(${m.id})">Eliminar</button></div></div>`).join('')}
+function toggleMiembro(id){const m=equipo.find(x=>x.id===id);if(m)m.activo=!m.activo;saveAll();renderEquipo()}
+function delMiembro(id){if(confirm('¿Eliminar miembro?')){equipo=equipo.filter(m=>m.id!==id);saveAll();renderEquipo()}}
+
+// ── AUSENCIAS ──
+function toggleAusForm(){
+  const body=document.getElementById('aus-form-body');
+  const toggle=document.getElementById('aus-toggle');
+  if(body.style.display==='none'){body.style.display='block';toggle.textContent='▲';}
+  else{body.style.display='none';toggle.textContent='▼';}
+}
+function reportarAusencia(){if(!currentMember)return;const fecha=document.getElementById('aus-fecha').value,motivo=document.getElementById('aus-motivo').value.trim();if(!fecha)return alert('Selecciona una fecha');ausencias.push({id:Date.now(),miembroId:currentMember.id,miembroNombre:currentMember.nombre,fecha,motivo:motivo||'Sin motivo especificado',visto:false});saveAll();document.getElementById('aus-fecha').value='';document.getElementById('aus-motivo').value='';updateAusBadge();alert('✅ Aviso enviado a Gladys')}
+function renderAusencias(){const w=document.getElementById('ausencias-list');ausencias.forEach(a=>a.visto=true);saveAll();updateAusBadge();if(!ausencias.length){w.innerHTML='<div class="card"><div class="empty"><div class="e-icon">✅</div><p>Sin ausencias reportadas</p></div></div>';return}const sorted=[...ausencias].sort((a,b)=>a.fecha.localeCompare(b.fecha));w.innerHTML='<div class="card"><div class="card-title">⚠️ Avisos de ausencia</div>'+sorted.map(a=>`<div class="ausencia-card"><div class="avatar" style="background:${aC(a.miembroNombre)};color:white">${a.miembroNombre[0].toUpperCase()}</div><div class="ausencia-info"><strong>${a.miembroNombre} — ${fmtF(a.fecha)}</strong><span>${a.motivo}</span></div><button class="btn btn-danger btn-sm" onclick="delAusencia(${a.id})">×</button></div>`).join('')+'</div>'}
+function delAusencia(id){ausencias=ausencias.filter(a=>a.id!==id);saveAll();renderAusencias()}
+function updateAusBadge(){const u=ausencias.filter(a=>!a.visto).length;['nb-aus','nb-aus2'].forEach(id=>{const el=document.getElementById(id);if(el){el.style.display=u?'inline':'none';el.textContent=u}})}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  document.getElementById('s-clientes').textContent=clientes.length;
+  const now=new Date(),m=now.getMonth(),y=now.getFullYear();
+  document.getElementById('s-citas').textContent=citas.filter(c=>{const d=new Date(c.fecha);return d.getMonth()===m&&d.getFullYear()===y}).length;
+  const pm=pagos.filter(p=>{if(!p.fecha)return false;const d=new Date(p.fecha);return d.getMonth()===m&&d.getFullYear()===y});
+  document.getElementById('s-ingresos').textContent='$'+pm.filter(p=>p.estado==='Pagado').reduce((s,p)=>s+p.monto,0).toLocaleString();
+  document.getElementById('s-pendientes').textContent='$'+pm.filter(p=>p.estado==='Pendiente').reduce((s,p)=>s+p.monto,0).toLocaleString();
+  const today=new Date().toISOString().split('T')[0],ausHoy=ausencias.filter(a=>!a.visto&&a.fecha>=today);
+  document.getElementById('dash-alert').innerHTML=ausHoy.length?`<div class="alert-banner"><span class="alert-icon">⚠️</span><span class="alert-text">${ausHoy.length} aviso${ausHoy.length>1?'s':''} de ausencia pendiente${ausHoy.length>1?'s':''}: ${ausHoy.map(a=>a.miembroNombre+' ('+a.fecha+')').join(', ')}</span><button class="btn btn-sm" style="background:var(--terra);color:white" onclick="showPage('ausencias')">Ver</button></div>`:'';
+  updateAusBadge();
+  const prox=[...citas].filter(c=>c.estado!=='Completada').sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,4);
+  document.getElementById('d-citas').innerHTML=prox.length?prox.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><div style="width:8px;height:8px;border-radius:50%;background:var(--sage);flex-shrink:0"></div><div style="flex:1"><div style="font-size:13.5px;font-weight:500">${c.cliNombre}</div><div style="font-size:12px;color:var(--muted)">${c.tipo||'Limpieza'} · ${c.hora||'sin hora'}</div></div><div style="font-size:12px;color:var(--sage);font-weight:500">${c.fecha}</div></div>`).join(''):'<div class="empty"><div class="e-icon">📆</div><p>Sin citas próximas</p></div>';
+  const ult=[...pagos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).slice(0,4);
+  document.getElementById('d-pagos').innerHTML=ult.length?ult.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><div class="avatar" style="background:${aC(p.cliNombre)};color:white">${(p.cliNombre||'?')[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:13.5px;font-weight:500">${p.cliNombre}</div><div style="font-size:12px;color:var(--muted)">${p.servicio||'—'}</div></div><div style="text-align:right"><div style="font-weight:600;font-family:'Fraunces',serif;font-size:14px">$${p.monto.toLocaleString()}</div><span class="badge ${p.estado==='Pagado'?'badge-green':'badge-orange'}" style="font-size:10.5px">${p.estado}</span></div></div>`).join(''):'<div class="empty"><div class="e-icon">💳</div><p>Sin pagos aún</p></div>';
+}
+
+// ── TEAM VIEW ──
+async function initTeam(){
+  // Load fresh data from Firebase
+  if(window.loadFromFirebase){
+    try{
+      const data = await window.loadFromFirebase();
+      if(data){
+        clientes = data.clientes || [];
+        citas = data.citas || [];
+        pagos = data.pagos || [];
+        equipo = data.equipo || [];
+        ausencias = data.ausencias || [];
+        masterTasks = (data.masterTasks&&data.masterTasks.length) ? data.masterTasks : masterTasks;
+        horasLog = data.horasLog || [];
+        horasRegistro = data.horasRegistro || [];
+        // Re-find currentMember in case equipo was updated
+        if(currentMember) currentMember = equipo.find(m=>m.id===currentMember.id) || currentMember;
+      }
+    } catch(e){ console.error('Firebase load error:', e); }
+  }
+  // Start realtime sync
+  if(window.startRealtimeSync){
+    window.startRealtimeSync(function(data){
+      if(data.clientes&&data.clientes.length) clientes=data.clientes;
+      if(data.citas) citas=data.citas;
+      if(data.equipo&&data.equipo.length) equipo=data.equipo;
+      if(data.masterTasks&&data.masterTasks.length) masterTasks=data.masterTasks;
+      if(data.ausencias) ausencias=data.ausencias;
+      if(data.horasRegistro&&data.horasRegistro.length) horasRegistro=data.horasRegistro.map(h=>({...h,miembroId:Number(h.miembroId)}));
+      if(data.semanasPagadas) semanasPagadas=data.semanasPagadas;
+      if(currentMember) currentMember=equipo.find(m=>m.id===currentMember.id)||currentMember;
+      renderTeamView();
+    });
+  }
+  const now=new Date();const tdv=document.getElementById('team-date-val');
+  if(tdv) tdv.textContent=now.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
+  const twl=document.getElementById('team-who-label');
+  if(twl) twl.textContent=currentMember?currentMember.nombre+' · '+currentMember.rol:'';const ausFecha=document.getElementById('aus-fecha');
+  if(ausFecha) ausFecha.value=now.toISOString().split('T')[0];
+  renderTeamView();}
+function renderTeamView(){
+  if(!currentMember)return;
+  const cont=document.getElementById('team-content');
+  if(!cont)return;
+  const today=new Date().toISOString().split('T')[0];
+  // Show next 7 days including today
+  const diasMostrar=[];
+  for(var di=0;di<7;di++){
+    var d=new Date();d.setDate(d.getDate()+di);
+    diasMostrar.push(d.toISOString().split('T')[0]);
+  }
+  // Get all my citas in next 7 days
+  const misCitasTodas=citas.filter(c=>{
+    if(!diasMostrar.includes(c.fecha))return false;
+    const asgn=c.assignments||{};
+    const enMiembros=(c.miembrosAsignados||[]).some(m=>m.id===currentMember.id);
+    return Object.values(asgn).includes(currentMember.id)||enMiembros;
+  }).sort((a,b)=>a.fecha.localeCompare(b.fecha)||(a.hora||'').localeCompare(b.hora||''));
+  const citasHoy=misCitasTodas.filter(c=>c.fecha===today);
+  const misCitas=citasHoy;
+  
+  // Calculate earnings this week
+  const today2=new Date();
+  const day2=today2.getDay(),diff2=today2.getDate()-day2+(day2===0?-6:1);
+  const monDate=new Date(today2);monDate.setDate(diff2);
+  const semInicio=monDate.toISOString().split('T')[0];
+  const semFin=today2.toISOString().split('T')[0];
+  const misRegistros=horasRegistro.filter(h=>h.miembroId===currentMember.id&&h.fecha>=semInicio&&h.fecha<=semFin);
+  const hrsSemanales=misRegistros.reduce((s,h)=>s+calcHrsEntradaSalida(h.entrada,h.salida),0);
+  const gananciaSemana=hrsSemanales*(currentMember.tarifa||0);
+  
+  // Today's registro
+  const todayReg=horasRegistro.find(h=>h.miembroId===currentMember.id&&h.fecha===today);
+  
+  // Build per-day detail
+  const diasDetalle=misRegistros.map(r=>{
+    const hrs=calcHrsEntradaSalida(r.entrada,r.salida);
+    return hrs>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:12px"><span>${fmtF(r.fecha)}</span><span>${r.entrada||'—'} → ${r.salida||'...'} · ${hrs.toFixed(2)}hrs</span></div>`:'';
+  }).filter(Boolean).join('');
+  
+  let earningsHtml=`<div class="earnings-banner">
+    <div class="el">Mis ganancias esta semana</div>
+    <div class="ev">$${gananciaSemana.toFixed(2)}</div>
+    <div class="es">${hrsSemanales.toFixed(2)} hrs × $${currentMember.tarifa||0}/hr</div>
+    ${diasDetalle?`<div style="margin-top:10px;border-top:1px solid rgba(255,255,255,0.15);padding-top:8px">${diasDetalle}</div>`:''}
+  </div>`;
+  
+  // Exit button - always show
+  let exitHtml='';
+  if(todayReg&&todayReg.salida){
+    exitHtml=`<button class="register-exit-btn done" disabled>✅ Salida registrada: ${todayReg.salida}</button>`;
+  } else {
+    exitHtml=`<button class="register-exit-btn" onclick="registrarSalidaTeam()">🔴 Registrar mi salida de hoy</button>`;
+  }
+  
+  if(!misCitas.length){
+    cont.innerHTML=`<div class="no-tasks"><div class="icon">🌟</div><p style="font-weight:700;font-size:16px;color:var(--ink);margin-bottom:6px">¡Sin tareas asignadas hoy!</p><p>Si crees que hay un error, comunícate con Gladys.</p></div>`+earningsHtml+exitHtml;
+    return;
+  }
+  
+  // Tasks first, then earnings
+  const extraHtml = earningsHtml + exitHtml;
+  // Build upcoming days section
+  var proximosDias='';
+  var citasFuturas=misCitasTodas.filter(c=>c.fecha>today);
+  if(citasFuturas.length){
+    var byDay={};
+    citasFuturas.forEach(function(c){if(!byDay[c.fecha])byDay[c.fecha]=[];byDay[c.fecha].push(c);});
+    proximosDias='<div style="margin-top:16px"><div class="section-lbl">📅 Próximos días</div>'+
+      Object.entries(byDay).map(function(entry){
+        var fecha=entry[0],dayCitas=entry[1];
+        return '<div style="background:white;border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:8px">'+
+          '<div style="font-size:12px;font-weight:600;color:var(--sage);margin-bottom:6px">'+fmtF(fecha)+'</div>'+
+          dayCitas.map(function(c){
+            return '<div style="font-size:13px;color:var(--ink);padding:3px 0;border-bottom:1px solid var(--border)">'+
+              '🏠 <strong>'+c.cliNombre+'</strong>'+(c.hora?' · '+c.hora:'')+'</div>';
+          }).join('')+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }
+
+  cont.innerHTML=`<div class="section-lbl">Mis casas de hoy — ${misCitas.length} casa${misCitas.length>1?'s':''}</div>`+misCitas.map(c=>{
+    const asgn=c.assignments||{},tasksDone=c.tasksDone||{},done=c.estado==='Completada';
+    const misTareas=[];
+    (c.taskIds||[]).forEach(tk=>{
+      const key=tk.id;
+      if(asgn[key]===currentMember.id) misTareas.push({key,texto:tk.t||tk.texto||'Tarea'});
+    });
+    const myInfo=(c.miembrosAsignados||[]).find(m=>m.id===currentMember.id);
+    const companions=(c.miembrosAsignados||[]).filter(m=>m.id!==currentMember.id);
+    return `<div class="team-cita-card ${done?'done-card':''}">
+      <div class="tc-header">
+        <div class="tc-client">${c.cliNombre}</div>
+        <div class="tc-time">🕐 ${myInfo?.horaLlegada||c.hora||'Sin hora'}</div>
+      </div>
+      ${c.dir?`<div class="tc-meta">📍 ${c.dir}</div>`:''}
+      ${companions.length?`<div class="tc-meta" style="color:var(--sage);font-weight:500">👥 Van contigo: ${companions.map(m=>m.nombre+(m.horaLlegada?' ('+m.horaLlegada+')':'')).join(', ')}</div>`:''}
+      ${c.notas?`<div class='tc-meta'>📝 ${c.notas}</div>`:''}
+      ${(()=>{var cli=clientes.find(x=>x.id===c.cliId);return cli&&cli.procedimientos?`<div style='background:var(--cream);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12.5px;line-height:1.6'><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600;margin-bottom:4px'>📋 Procedimientos</div>${cli.procedimientos}</div>`:''})()}
+      ${c.procedimientos?`<div style='background:var(--cream);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12.5px;color:var(--ink);line-height:1.6'><strong style='font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)'>Procedimientos</strong><br>${c.procedimientos}</div>`:''}
+      <div class="my-tasks-section"><div class="my-tasks-title">Mis tareas en esta casa</div>${misTareas.length?misTareas.map(t=>`<div class="t-task-item" onclick="toggleTeamTask(${c.id},'${t.key}')"><div class="t-task-box ${tasksDone[t.key]?'done':''}">${tasksDone[t.key]?'✓':''}</div><span class="t-task-label ${tasksDone[t.key]?'done':''}">${t.texto}</span></div>`).join(''):'<p style="font-size:13px;color:var(--muted)">Sin tareas específicas asignadas</p>'}</div><button class="${done?'complete-btn done-btn':'complete-btn'}" ${done?'disabled':''} onclick="markDone(${c.id})">${done?'✅ Completada':'✓ Marcar como lista'}</button></div>`;
+  }).join('')+extraHtml;
+}
+function toggleTeamTask(citaId,taskKey){const c=citas.find(x=>x.id===citaId);if(!c)return;if(!c.tasksDone)c.tasksDone={};c.tasksDone[taskKey]=!c.tasksDone[taskKey];saveAll();renderTeamView();}
+function markDone(citaId){const c=citas.find(x=>x.id===citaId);if(c)c.estado='Completada';saveAll();renderTeamView()}
+
+
+// ── NÓMINA ──
+let currentWeekOffset = 0;
+
+function getWeekDates(offset){
+  const now=new Date();
+  // getDay(): 0=Sun,1=Mon...6=Sat. We want Monday as start.
+  const day=now.getDay();
+  const daysToMon=day===0?-6:1-day; // how many days back to Monday
+  const mon=new Date(now.getFullYear(),now.getMonth(),now.getDate()+daysToMon+offset*7);
+  const sun=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+6);
+  return {mon, sun};
+}
+
+function dateToStr(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function getWeekNumber(date){
+  const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+  const dayNum=(d.getDay()||7);
+  d.setDate(d.getDate()+4-dayNum);
+  const yearStart=new Date(d.getFullYear(),0,1);
+  return Math.ceil((((d-yearStart)/86400000)+1)/7);
+}
+
+function cambiarSemana(dir){
+  currentWeekOffset += dir;
+  updateWeekDisplay();
+}
+
+function updateWeekDisplay(){
+  const {mon,sun}=getWeekDates(currentWeekOffset);
+  const weekNum=getWeekNumber(mon);
+  const inicio=dateToStr(mon);
+  const fin=dateToStr(sun);
+  document.getElementById('nom-inicio').value=inicio;
+  document.getElementById('nom-fin').value=fin;
+  document.getElementById('nom-semana-label').value='Semana '+weekNum+' · '+mon.getFullYear();
+  const fechasStr=mon.toLocaleDateString('es-MX',{day:'numeric',month:'short'})+' – '+sun.toLocaleDateString('es-MX',{day:'numeric',month:'short'});
+  document.getElementById('nom-fechas-label').textContent=fechasStr;
+  const rsl=document.getElementById('reg-semana-label');
+  if(rsl) rsl.textContent='Semana '+weekNum+' ('+fechasStr+')';
+  // Update selector
+  const sel=document.getElementById('nom-semana-sel');
+  if(sel) sel.value=currentWeekOffset;
+  // Update hr-fecha range hints
+  const hrf=document.getElementById('hr-fecha');
+  if(hrf) hrf.value=inicio; // Always reset to Monday of selected week
+  renderNomina();
+  renderHorasLog();
+}
+
+function irASemana(){
+  const sel=document.getElementById('nom-semana-sel');
+  if(!sel)return;
+  currentWeekOffset=parseInt(sel.value);
+  updateWeekDisplay();
+}
+
+function populateWeekSelector(){
+  const sel=document.getElementById('nom-semana-sel');
+  if(!sel)return;
+  const options=[];
+  for(let i=-26;i<=4;i++){
+    const {mon}=getWeekDates(i);
+    const wn=getWeekNumber(mon);
+    const {mon:m2,sun:s2}=getWeekDates(i);
+    const sk='semana-'+dateToStr(m2)+'-'+dateToStr(s2);
+    const paid=semanasPagadas.includes(sk);
+    const label='Semana '+wn+(paid?' ✅':'')+' '+(i===0?'(actual)':i===-1?'(anterior)':'');
+    options.push(`<option value="${i}" ${i===currentWeekOffset?'selected':''}>${label}</option>`);
+  }
+  sel.innerHTML=options.join('');
+}
+
+function initNomina(){
+  // Debug: log week dates
+  var test=getWeekDates(0);
+  console.log('Semana actual inicio:', dateToStr(test.mon), 'fin:', dateToStr(test.sun));
+  currentWeekOffset=0;
+  populateWeekSelector();
+  const sel=document.getElementById('hr-miembro');
+  if(sel) sel.innerHTML=equipo.filter(m=>m.activo).map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('');
+  // hr-fecha will be set by updateWeekDisplay
+  updateWeekDisplay();
+}
+
+function calcHorasDia(entrada,salida){
+  if(!entrada||!salida)return 0;
+  const [eh,em]=entrada.split(':').map(Number),[sh,sm]=salida.split(':').map(Number);
+  return Math.max(0,((sh*60+sm)-(eh*60+em))/60);
+}
+
+function renderNomina(){
+  const inicio=document.getElementById('nom-inicio')?.value;
+  const fin=document.getElementById('nom-fin')?.value;
+  if(!inicio||!fin)return;
+  const detWrap=document.getElementById('nomina-detalle');
+  const activos=equipo.filter(m=>m.activo);
+  if(!activos.length){detWrap.innerHTML='<p style="color:var(--muted);font-size:13px">Sin miembros activos</p>';return;}
+  const results=activos.map(m=>{
+    const regs=horasRegistro.filter(h=>Number(h.miembroId)===Number(m.id)&&h.fecha>=inicio&&h.fecha<=fin);
+    const totalHrs=regs.reduce((s,h)=>s+calcHrsEntradaSalida(h.entrada,h.salida),0);
+    const tarifa=m.tarifa||0;
+    const total=totalHrs*tarifa;
+    const diasTrabajados=regs.filter(h=>h.salida).length;
+    return {m,diasTrabajados,totalHrs:totalHrs.toFixed(2),tarifa,total};
+  });
+  const inicio2=inicio, fin2=fin;
+  const semLabel=document.getElementById('nom-semana-label')?.value||'';
+  const grandTotal=results.reduce((s,r)=>s+r.total,0);
+  const semKey='semana-'+inicio+'-'+fin;
+  const activos2=equipo.filter(m=>m.activo);
+  const todosPagados=activos2.length>0&&activos2.every(m=>semanasPagadas.includes('miembro-'+m.id+'-semana-'+inicio+'-'+fin));
+  const dsl=document.getElementById('nom-detalle-semana');
+  if(dsl) dsl.textContent=semLabel+(todosPagados?' ✅ TODOS PAGADOS':'');
+  // Per-member payment buttons shown in row
+  function buildNominaRow(r, inicio, fin){
+    var memberKey='miembro-'+r.m.id+'-semana-'+inicio+'-'+fin;
+    var mp=semanasPagadas.includes(memberKey);
+    var html='<div class="nomina-row">';
+    html+='<div class="avatar" style="background:'+aC(r.m.nombre)+';color:white">'+r.m.nombre[0].toUpperCase()+'</div>';
+    html+='<div class="nomina-row-info">';
+    html+='<div class="nomina-row-name">'+r.m.nombre;
+    html+=' <span class="badge badge-gray" style="font-size:10.5px">'+r.m.rol+'</span>';
+    if(mp) html+=' <span class="badge badge-green" style="font-size:10.5px">✅ Pagado</span>';
+    html+='</div>';
+    html+='<div class="nomina-row-meta">$'+r.tarifa+'/hr &middot; '+r.diasTrabajados+' días</div>';
+    html+='</div>';
+    html+='<div style="text-align:right">';
+    html+='<div class="nomina-row-total">$'+r.total.toFixed(2)+'</div>';
+    html+='<div class="nomina-row-hrs">'+r.totalHrs+' hrs</div>';
+    if(mp){
+      html+='<button class="btn btn-ghost btn-sm" style="margin-top:4px;font-size:11px" onclick="desmarcarPagadaMiembro(this.dataset.key)" data-key="'+memberKey+'">Desmarcar</button>';
+    } else {
+      html+='<button class="btn btn-sm" style="margin-top:4px;font-size:11px;background:var(--sage);color:white" onclick="marcarPagadaMiembro(this.dataset.key,this.dataset.nombre)" data-key="'+memberKey+'" data-nombre="'+r.m.nombre+'">💰 Pagado</button>';
+    }
+    html+='</div></div>';
+    return html;
+  }
+  var rows=results.map(r=>buildNominaRow(r,inicio,fin)).join('');
+  var footer='<div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:14px;border-top:2px solid var(--border);margin-top:4px">'+
+    '<div style="font-size:12px;color:var(--muted)">'+semLabel+'</div>'+
+    '<div style="text-align:right">'+
+    '<div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total a pagar</div>'+
+    '<div style="font-family:Fraunces,serif;font-size:28px;font-weight:600;color:var(--ink)">$'+grandTotal.toFixed(2)+'</div>'+
+    '</div></div>';
+  detWrap.innerHTML=rows+footer;
+}
+
+
+function registrarEntrada(){
+  const mId=parseInt(document.getElementById('hr-miembro').value);
+  const fecha=document.getElementById('hr-fecha').value;
+  const entrada=document.getElementById('hr-entrada').value;
+  const salida=document.getElementById('hr-salida-admin')?.value||'';
+  if(!mId||!fecha||!entrada)return alert('Selecciona miembro, fecha y hora de entrada');
+  // Check if week is paid
+  const inicio=document.getElementById('nom-inicio')?.value||'';
+  const fin=document.getElementById('nom-fin')?.value||'';
+  const semKey='miembro-'+mId+'-semana-'+inicio+'-'+fin;
+  if(semanasPagadas.includes(semKey))return alert('Esta semana ya fue marcada como pagada para este miembro. Desmárcala primero.');
+  const m=equipo.find(x=>x.id===mId);
+  const existing=horasRegistro.find(h=>h.miembroId===mId&&h.fecha===fecha);
+  if(existing){
+    existing.entrada=entrada;
+    if(salida) existing.salida=salida;
+  } else {
+    horasRegistro.push({id:Date.now(),miembroId:Number(mId),miembroNombre:m?.nombre||'—',fecha,entrada,salida});
+  }
+  saveAll();
+  document.getElementById('hr-entrada').value='';
+  if(document.getElementById('hr-salida-admin')) document.getElementById('hr-salida-admin').value='';
+  renderHorasLog();
+  renderNomina();
+  showToast('✅ Registrado para '+m?.nombre);
+}
+
+function registrarSalida(miembroId, fecha){
+  const reg=horasRegistro.find(h=>h.miembroId===miembroId&&h.fecha===fecha);
+  if(!reg)return alert('No hay entrada registrada para este día');
+  // Ask for exit time
+  const hora=prompt('¿A qué hora saliste? (formato HH:MM, ej: 17:30)');
+  if(!hora)return;
+  reg.salida=hora;
+  saveAll();
+  renderTeamView();
+  showToast('✅ Salida registrada');
+}
+
+function renderHorasLog(){
+  const wrap=document.getElementById('horas-log');
+  if(!wrap)return;
+  const inicio=document.getElementById('nom-inicio')?.value||'';
+  const fin=document.getElementById('nom-fin')?.value||'';
+  const sorted=[...horasRegistro]
+    .filter(h=>h.fecha>=inicio&&h.fecha<=fin)
+    .filter(h=>h.entrada||h.salida)
+    .sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.miembroNombre.localeCompare(b.miembroNombre));
+  if(!sorted.length){wrap.innerHTML='<p style="color:var(--muted);font-size:13px">Sin registros aún. Empieza registrando las entradas de la semana.</p>';return;}
+  wrap.innerHTML=`<div style='font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:10px'>Registros de esta semana (${sorted.length})</div>`+
+    sorted.map(h=>{
+      const hrs=calcHrsEntradaSalida(h.entrada,h.salida);
+      const m=equipo.find(x=>x.id===h.miembroId);
+      const tarifa=m?.tarifa||0;
+      const inicioW=document.getElementById('nom-inicio')?.value||'';
+      const finW=document.getElementById('nom-fin')?.value||'';
+      const semKeyH='miembro-'+Number(h.miembroId)+'-semana-'+inicioW+'-'+finW;
+      const esPagadaReg=semanasPagadas.includes(semKeyH);
+      return `<div class="time-log-card" id="tlc-${h.id}">
+        <div class="time-log-row">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="avatar" style="background:${aC(h.miembroNombre)};color:white">${h.miembroNombre[0].toUpperCase()}</div>
+            <div>
+              <div class="time-log-date">${h.miembroNombre}</div>
+              <div style="font-size:12px;color:var(--muted)">${fmtF(h.fecha)}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            ${esPagadaReg?'':`<button class="btn btn-ghost btn-sm" onclick="editRegistro(${h.id})">✏️</button>`}
+            ${esPagadaReg?'':`<button class="btn btn-danger btn-sm" onclick="delRegistro(${h.id})">×</button>`}
+          </div>
+        </div>
+        <div class="time-log-times" id="tlt-${h.id}">
+          <span>🟢 Entrada: <strong>${h.entrada||'—'}</strong></span>
+          <span>🔴 Salida: <strong>${h.salida||'Pendiente'}</strong></span>
+          ${hrs>0?`<span class="time-log-hrs">${hrs.toFixed(2)} hrs · $$${(hrs*tarifa).toFixed(2)}</span>`:''}
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function editRegistro(id){
+  const h=horasRegistro.find(x=>x.id===id);
+  if(!h)return;
+  const wrap=document.getElementById('tlt-'+id);
+  if(!wrap)return;
+  wrap.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:6px;align-items:end">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Entrada</div>
+        <input type="time" id="edit-entrada-${id}" value="${h.entrada||''}" style="width:100%;padding:6px 10px;border:1px solid var(--sage);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Salida</div>
+        <input type="time" id="edit-salida-${id}" value="${h.salida||''}" style="width:100%;padding:6px 10px;border:1px solid var(--sage);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-primary btn-sm" onclick="saveEditRegistro(${id})">✓</button>
+        <button class="btn btn-ghost btn-sm" onclick="renderHorasLog()">×</button>
+      </div>
+    </div>`;
+}
+
+function saveEditRegistro(id){
+  const h=horasRegistro.find(x=>x.id===id);
+  if(!h)return;
+  const entrada=document.getElementById('edit-entrada-'+id)?.value;
+  const salida=document.getElementById('edit-salida-'+id)?.value;
+  if(entrada) h.entrada=entrada;
+  h.salida=salida||'';
+  saveAll();
+  renderHorasLog();
+  renderNomina();
+  showToast('✅ Registro actualizado');
+}
+
+function calcHrsEntradaSalida(entrada,salida){
+  if(!entrada||!salida)return 0;
+  const [eh,em]=entrada.split(':').map(Number),[sh,sm]=salida.split(':').map(Number);
+  return Math.max(0,((sh*60+sm)-(eh*60+em))/60);
+}
+
+function delRegistro(id){horasRegistro=horasRegistro.filter(h=>h.id!==id);saveAll();renderHorasLog();renderNomina();}
+function delHora(id){horasLog=horasLog.filter(h=>h.id!==id);saveAll();renderHorasLog();renderNomina();}
+
+
+function editMiembro(id){
+  const m=equipo.find(x=>x.id===id);
+  if(!m)return;
+  document.getElementById('edit-mi-id').value=id;
+  document.getElementById('edit-mi-n').value=m.nombre||'';
+  document.getElementById('edit-mi-r').value=m.rol||'Limpiadora';
+  document.getElementById('edit-mi-t').value=m.tel||'';
+  document.getElementById('edit-mi-inicio').value=m.inicio||'';
+  document.getElementById('edit-mi-tarifa').value=m.tarifa||'';
+  document.getElementById('edit-mi-entrada').value=m.entrada||'';
+  document.getElementById('edit-mi-salida').value=m.salida||'';
+  document.getElementById('edit-mi-no').value=m.notas||'';
+  // Set day buttons
+  document.querySelectorAll('#edit-mi-dias .day-btn').forEach(btn=>{
+    btn.classList.toggle('active',(m.dias||[]).includes(btn.dataset.day));
+  });
+  document.getElementById('m-editar-miembro').classList.add('open');
+}
+
+function updateMiembro(){
+  const id=parseInt(document.getElementById('edit-mi-id').value);
+  const m=equipo.find(x=>x.id===id);
+  if(!m)return;
+  m.nombre=document.getElementById('edit-mi-n').value.trim()||m.nombre;
+  m.rol=document.getElementById('edit-mi-r').value;
+  m.tel=document.getElementById('edit-mi-t').value;
+  m.inicio=document.getElementById('edit-mi-inicio').value;
+  m.tarifa=parseFloat(document.getElementById('edit-mi-tarifa').value)||0;
+  m.entrada=document.getElementById('edit-mi-entrada').value;
+  m.salida=document.getElementById('edit-mi-salida').value;
+  m.notas=document.getElementById('edit-mi-no').value;
+  m.dias=Array.from(document.querySelectorAll('#edit-mi-dias .day-btn.active')).map(b=>b.dataset.day);
+  saveAll();
+  closeModal('m-editar-miembro');
+  renderEquipo();
+}
+
+// ── EXPORTAR / IMPORTAR ──
+function exportarDatos(){
+  const data={
+    clientes,citas,pagos,equipo,ausencias,masterTasks,horasLog,
+    exportado:new Date().toISOString(),version:'cbg3'
+  };
+  const json=JSON.stringify(data);
+  document.getElementById('export-text').value=json;
+  document.getElementById('m-exportar').classList.add('open');
+}
+
+function importarDesdeTexto(){
+  const txt=document.getElementById('import-text').value.trim();
+  if(!txt)return alert('Pega el texto primero');
+  try{
+    const data=JSON.parse(txt);
+    if(!data.version||data.version!=='cbg3')return alert('Texto no válido. Debe ser exportado desde CleanbyG.');
+    if(!confirm('⚠️ Esto reemplazará TODOS los datos actuales. ¿Continuar?'))return;
+    clientes=data.clientes||[];
+    citas=data.citas||[];
+    pagos=data.pagos||[];
+    equipo=data.equipo||[];
+    ausencias=data.ausencias||[];
+    masterTasks=data.masterTasks||[];
+    horasLog=data.horasLog||[];
+    saveAll();
+    closeModal('m-importar-texto');
+    document.getElementById('import-text').value='';
+    renderDashboard();
+    showToast('✅ Datos importados correctamente');
+  }catch(err){
+    alert('Error al leer el texto. Asegúrate de que sea el texto completo de exportación.');
+  }
+}
+
+function copiarExport(){
+  const ta=document.getElementById('export-text');
+  ta.select();
+  document.execCommand('copy');
+  showToast('✅ ¡Copiado! Pégalo en un lugar seguro');
+}
+
+function importarDatos(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data.version||data.version!=='cbg3') return alert('Archivo no válido. Debe ser exportado desde CleanbyG.');
+      if(!confirm('⚠️ Esto reemplazará TODOS los datos actuales en este dispositivo. ¿Continuar?'))return;
+      clientes=data.clientes||[];
+      citas=data.citas||[];
+      pagos=data.pagos||[];
+      equipo=data.equipo||[];
+      ausencias=data.ausencias||[];
+      masterTasks=data.masterTasks||[];
+      horasLog=data.horasLog||[];
+      saveAll();
+      renderDashboard();
+      showToast('✅ Datos importados correctamente');
+      document.getElementById('import-file').value='';
+    }catch(err){
+      alert('Error al leer el archivo. Asegúrate de que sea un archivo válido de CleanbyG.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// Render functions exposed via direct reference below
+
+
+function registrarSalidaTeam(){
+  if(!currentMember)return;
+  const today=new Date().toISOString().split('T')[0];
+  const now=new Date();
+  const hora=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  if(!confirm('¿Registrar tu salida a las '+hora+'?'))return;
+  let reg=horasRegistro.find(h=>h.miembroId===currentMember.id&&h.fecha===today);
+  if(!reg){
+    // Create record with only salida (Gladys can add entrada later)
+    horasRegistro.push({id:Date.now(),miembroId:currentMember.id,miembroNombre:currentMember.nombre,fecha:today,entrada:'',salida:hora});
+  } else {
+    reg.salida=hora;
+  }
+  saveAll();
+  renderTeamView();
+  showToast('✅ Salida registrada: '+hora);
+}
+
+function marcarPagadaMiembro(memberKey, nombre){
+  if(!confirm('¿Marcar a '+nombre+' como pagada esta semana?'))return;
+  if(!semanasPagadas.includes(memberKey)) semanasPagadas.push(memberKey);
+  saveAll();renderNomina();renderHorasLog();
+  showToast('✅ '+nombre+' marcada como pagada');
+}
+function desmarcarPagadaMiembro(memberKey){
+  if(!confirm('¿Desmarcar este pago?'))return;
+  semanasPagadas=semanasPagadas.filter(s=>s!==memberKey);
+  saveAll();renderNomina();renderHorasLog();
+  showToast('✅ Pago desmarcado');
+}
+// ── UTILS ──
+function fmtF(s){const d=new Date(s+'T12:00:00');return d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'})}
+function aC(n){const c=['#4E7353','#C4714A','#3A6BC0','#7B5C9E','#2C7873','#B5602A','#5C6B8C'];let h=0;for(let i=0;i<(n||'').length;i++)h=(n.charCodeAt(i)+((h<<5)-h));return c[Math.abs(h)%c.length]}
+</script>
+
+<!-- MODAL: EDITAR MIEMBRO -->
+<div class="modal-overlay" id="m-editar-miembro">
+  <div class="modal">
+    <div class="modal-header"><h3>Editar miembro</h3><button class="modal-close" onclick="closeModal('m-editar-miembro')">×</button></div>
+    <input type="hidden" id="edit-mi-id">
+    <div class="form-grid">
+      <div class="form-group"><label>Nombre</label><input id="edit-mi-n" placeholder="Laura Martínez"></div>
+      <div class="form-group"><label>Rol</label><select id="edit-mi-r"><option>Limpiadora</option><option>Supervisora</option><option>Apoyo</option><option>Coordinadora</option></select></div>
+      <div class="form-group"><label>Teléfono</label><input id="edit-mi-t" placeholder="55 9876 5432"></div>
+      <div class="form-group"><label>Fecha de inicio</label><input type="date" id="edit-mi-inicio"></div>
+      <div class="form-group"><label>Tarifa por hora ($)</label><input type="number" id="edit-mi-tarifa" placeholder="80"></div>
+      <div class="form-group"><label>Hora entrada</label><input type="time" id="edit-mi-entrada"></div>
+      <div class="form-group"><label>Hora salida</label><input type="time" id="edit-mi-salida"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Días que trabaja</label><div class="days-selector" id="edit-mi-dias"><button type="button" class="day-btn" data-day="Lun">Lun</button><button type="button" class="day-btn" data-day="Mar">Mar</button><button type="button" class="day-btn" data-day="Miér">Miér</button><button type="button" class="day-btn" data-day="Jue">Jue</button><button type="button" class="day-btn" data-day="Vie">Vie</button><button type="button" class="day-btn" data-day="Sáb">Sáb</button><button type="button" class="day-btn" data-day="Dom">Dom</button></div></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Notas</label><textarea id="edit-mi-no" rows="2" placeholder="Habilidades, zona, observaciones..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('m-editar-miembro')">Cancelar</button><button class="btn btn-primary" onclick="updateMiembro()">Guardar cambios</button></div>
+  </div>
+</div>
+
+
+<!-- MODAL: IMPORTAR DESDE TEXTO -->
+<div class="modal-overlay" id="m-importar-texto">
+  <div class="modal">
+    <div class="modal-header"><h3>⬆️ Importar datos</h3><button class="modal-close" onclick="closeModal('m-importar-texto')">×</button></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Pega aquí el texto que copiaste al exportar.</p>
+    <textarea id="import-text" rows="6" placeholder="Pega aquí tu texto de exportación..." style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:11px;background:var(--cream);resize:none;outline:none"></textarea>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('m-importar-texto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="importarDesdeTexto()">Importar</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL: EXPORTAR -->
+<div class="modal-overlay" id="m-exportar">
+  <div class="modal">
+    <div class="modal-header"><h3>⬇️ Exportar datos</h3><button class="modal-close" onclick="closeModal('m-exportar')">×</button></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Selecciona todo el texto de abajo, cópialo y guárdalo en un archivo de notas o WhatsApp para no perderlo.</p>
+    <textarea id="export-text" rows="6" readonly onclick="this.select()" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:11px;background:var(--cream);resize:none;outline:none;cursor:pointer"></textarea>
+    <p style="font-size:12px;color:var(--sage);margin-top:8px">👆 Haz clic en el texto para seleccionarlo todo</p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('m-exportar')">Cerrar</button>
+      <button class="btn btn-primary" onclick="copiarExport()">📋 Copiar todo</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+</body>
+</html>
